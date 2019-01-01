@@ -2,8 +2,42 @@
 <html>
 <head>
 </head>
+<script>
+function redirectto()
+                    {
+                      window.location.replace("HomePage.php");
+                    }
+</script>
 <?php
+session_start();
 $username = $passwordErr = $emailErr = $nameErr = $email = $password = $mobileno = "";
+class property{
+  public $price;
+  public $size;
+  public $address;
+  public $img;
+  public $houseName;
+  public function __construct($price,$size,$address,$img,$houseName){
+      $this->price = $price;
+      $this->size = $size;
+      $this->address = $address;
+      $this->img = $img;
+      $this->houseName = $houseName;
+  }
+
+}
+$conn = mysqli_connect('localhost','root','','real_estate');
+$selectQuery="select * from property";
+$result = mysqli_query($conn,$selectQuery);
+$allProperties = array();
+if(mysqli_num_rows($result)>0){
+    while($row = mysqli_fetch_assoc($result)){
+        array_push($allProperties,new property($row['price'],$row['size'],$row['description'],'../assets/pic2.jpg','villa'));
+    }}
+    else{
+        echo "0 results";
+    }
+$payload = json_encode($allProperties);
 if (isset($_POST["submit"])) {
   if (!preg_match("/^[a-zA-Z\d ]*$/",$_POST["username"])) {
     $nameErr = "Only letters,numbers and white space allowed"; 
@@ -37,6 +71,44 @@ if (isset($_POST["submit"])) {
    
   }
 }
+else if (isset($_POST["submitlogin"]))
+{
+  $connlogin = mysqli_connect('localhost','root','','real_estate');
+  $usernamelogin = $_POST['usernameloginf'];
+  $passwordlogin = $_POST['passwordloginf'];
+  $querylogin="SELECT * FROM user WHERE username='$usernamelogin' AND password='$passwordlogin'";
+  $resultlogin = mysqli_query($connlogin,$querylogin);
+  $count=mysqli_num_rows($resultlogin);
+  if($count==1)
+  {
+    $rowlogin = mysqli_fetch_assoc($resultlogin);
+    if ($rowlogin['username'] == $usernamelogin && $rowlogin['password'] == $passwordlogin)
+    {
+        $_SESSION['username']= $usernamelogin;
+        header("Location:Homepage.php");
+        return true;
+    }
+    else
+    {
+        echo "<script>";
+        echo "redirectto();";
+        echo "alert('Invalid Username or Password');";
+        echo "</script>";
+        
+        return false;
+    }
+  }
+  else
+  {
+      echo "<script>";
+      echo "redirectto();";
+      echo "alert('Invalid Username or Password');";
+      echo "</script>";
+      
+      return false;
+  }
+  mysqli_close($con);
+}
 ?>
 <body>
 
@@ -54,8 +126,20 @@ if (isset($_POST["submit"])) {
 <div class="line-between"></div> 
 <li> <a href = "#Add property" id="add-property">AddProperty</a> </li>
 <div class="login-signup">
-<li><a href = "#Login" id='login'>Login /</a>  </li>
-<li><a href = "#Signup" id='Signup'> Signup</a></li>
+<?php
+if(!empty($_SESSION))
+{
+  echo "<li style = 'color:white;padding-right:5px'>Welcome, ".$_SESSION['username']." </li>";
+  echo "<form action = 'signout.php'>";
+  echo "<li><button class= 'Signout' id='signout'> Signout</button></li>";
+  echo "</form>";
+}
+else
+{
+  echo "<li><a href = '#Login' id='login'>Login /</a></li>";
+  echo "<li><a href = '#Signup' id='Signup'> Signup</a></li>";
+}
+?>
 </div>
 
 </ul>
@@ -343,6 +427,32 @@ if (isset($_POST["submit"])) {
       </div>
    </div>
  </div>
+ <div id="myModallogin" class="modallogin">
+        <!-- Modal content -->
+          <div class="modal-contentlogin"> 
+          <div class="contentlogin">
+          <div class="mainlogin">
+          <span class="closelogin">&times;</span>
+            <h2>Login with your acccount</h2>
+            <form method="post">
+              <h5>Username <span>* <?php echo $nameErr; ?></span></h5>
+              <input
+                type="text"
+                name="usernameloginf"
+                required=""
+              />
+              <h5>Password <span>* <?php echo $passwordErr; ?></span></h5>
+              <input
+                type="password"
+                name="passwordloginf"
+                required=""
+              />
+              <input name="submitlogin"type="submit" value="Login" />
+            </form>
+          </div>
+        </div>
+       </div>
+    </div>
 </div>
 </body>
 <style>
@@ -378,6 +488,16 @@ text-decoration: none;
 {
 color: #6B9FE2;
 font-weight: bold;
+
+}
+
+.Signout
+{
+  background-color:#101010;
+  border:none;
+  font-size:18px;
+  color: #6B9FE2;
+  font-weight: bold;
 
 }
 #signup
@@ -767,21 +887,122 @@ margin-right:10px;
     border-bottom: 5px solid rgb(168, 168, 168);
     transition: 0.5s all;
   }
+  .modallogin {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    padding-top: 10px; /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+.modal-contentlogin {
+   
+    margin: auto;
+    width: 50%;
+}
+.closelogin {
+    color: #aaaaaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.closelogin:hover,
+.closelogin:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+  .contentlogin{
+    padding: 60px 0;
+  }
+
+  .mainlogin {
+    width: 50%;
+    margin: 0 auto 0 auto;
+    background: #fff;
+    padding: 30px 64px;
+   
+  }
+
+  .mainlogin h2 {
+    color: #4caf50;
+    font-size: 26px;
+    text-align: center;
+    margin-bottom: 30px;
+    font-weight: 500;
+  }
+
+  .mainlogin form input[type="text"],
+  .mainlogin form input[type="password"] {
+    width: 94%;
+    padding: 10px;
+    font-size: 14px;
+    border: none;
+    border-bottom: 2px solid #e6e6e6;
+    outline: none;
+    color: #d8d5d5;
+    margin-bottom: 20px;
+  }
+  .mainlogin h5 {
+    font-family: "Lato", sans-serif !important;
+    color: #4caf50;
+    margin-bottom: 8px;
+    font-size: 15px;
+  }
+  .mainlogin form input[type="text"]:hover,
+  .mainlogin form input[type="password"]:hover {
+    border-bottom: 2px solid #b384fb;
+    color: #000;
+    transition: 0.5s all;
+  }
+  .mainlogin form input[type="text"]:focus,
+  .mainlogin form input[type="password"]:focus {
+    border-bottom: 2px solid #b384fb;
+    color: #000;
+    transition: 0.5s all;
+  }
+
+  .mainlogin form input[type="submit"] {
+    background: #4caf50;
+    color: #ffffff;
+    text-align: center;
+    padding: 14px 0;
+    border: none;
+    border-bottom: 5px solid rgb(61, 151, 64);
+    font-size: 17px;
+    outline: none;
+    width: 100%;
+    cursor: pointer;
+    margin-bottom: 0px;
+  }
+  .mainlogin form input[type="submit"]:hover {
+    background: rgb(206, 206, 206);
+    color: #000;
+    border-bottom: 5px solid rgb(168, 168, 168);
+    transition: 0.5s all;
+  }
 </style>
 <script>
-        var houses = [{houseName:"Villa 1", 
-                      price:200000, 
-                      address:"20 Omar Ibn Elkhatab Street, Sheraton Helioplis",
-                      img: "../assets/pic2.jpg"
-                      },
-                      {houseName:"Villa 2", 
-                      price:300000, 
-                      address:"20 Omar Ibn Elkhatab Street, Sheraton Helioplis",
-                      img: "../assets/pic3.jpg"},
-                      {houseName:"Villa 3", 
-                      price:400000, 
-                      address:"20 Omar Ibn Elkhatab Street, Sheraton Helioplis",
-                      img: "../assets/pic1.jpg"}];
+        var houses = <?php echo $payload ?>
+        // var houses = [{houseName:"Villa 1", 
+        //               price:200000, 
+        //               address:"20 Omar Ibn Elkhatab Street, Sheraton Helioplis",
+        //               img: "../assets/pic2.jpg"
+        //               },
+        //               {houseName:"Villa 2", 
+        //               price:300000, 
+        //               address:"20 Omar Ibn Elkhatab Street, Sheraton Helioplis",
+        //               img: "../assets/pic3.jpg"},
+        //               {houseName:"Villa 3", 
+        //               price:400000, 
+        //               address:"20 Omar Ibn Elkhatab Street, Sheraton Helioplis",
+        //               img: "../assets/pic1.jpg"}];
                   
                   function render(houseobj){
                       
@@ -898,6 +1119,20 @@ margin-right:10px;
                             modal.style.display = "none";
                         }
                     }
+                    var modallog = document.getElementById('myModallogin');
+                    var btnlog = document.getElementById("login");
+                    var spanlog = document.getElementsByClassName("closelogin")[0];
+                    btnlog.onclick = function() {
+                        modallog.style.display = "block";
+                    }
+                    spanlog.onclick = function() {
+                        modallog.style.display = "none";
+                    }
+                    window.onclick = function(event) {
+                        if (event.target == modallog) {
+                            modallog.style.display = "none";
+                        }
+                    }
                     var AddProperty = document.getElementById('addProperty');
                     var btn1 = document.getElementById("add-property");
                     var span1 = document.getElementsByClassName("closeProperty")[0];
@@ -912,5 +1147,6 @@ margin-right:10px;
                             AddProperty.style.display = "none";
                         }
                     }
+                    
   </script>
   </html>
