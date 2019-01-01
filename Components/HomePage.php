@@ -1015,30 +1015,32 @@ margin-right:10px;
                           var adContainer = document.createElement("div");
                           var address = document.createTextNode(houseobj[x].address);
                           var addressContainer = document.createElement("p");
-                          var button1 =  document.createElement("button");
-                          button1.innerHTML = "Show more";
-                          button1.onclick = function()
-                          {
-                            Popup(x, houseobj); 
-                          }
+                          // var button1 =  document.createElement("button");
+                          // button1.innerHTML = "Show more";
+                          // button1.onclick = function()
+                          // {
+                          //   Popup(x, houseobj); 
+                          // }
   
                           priceContainer.appendChild(price);
                           addressContainer.appendChild(address);
-  
-                          
+                          adContainer.onclick = function()
+                          {
+                            Popup(x, houseobj); 
+                          }
                           adContainer.appendChild(img);                         
                           adContainer.appendChild(priceContainer);
                           adContainer.appendChild(addressContainer);
-                          adContainer.appendChild(button1);
+                          //adContainer.appendChild(button1);
                           containerAll.appendChild(adContainer);
                           
-                          button1.style.marginLeft = "210px";
-                          button1.style.backgroundColor =  "#4CAF50";
-                          button1.style.border = "0";
-                          button1.style.borderRadius = "2px";
-                          button1.style.color = "white";
-                          button1.style.transitionDuration = "0.4s";
-                          button1.style.padding = "5px 5px";
+                          // button1.style.marginLeft = "210px";
+                          // button1.style.backgroundColor =  "#4CAF50";
+                          // button1.style.border = "0";
+                          // button1.style.borderRadius = "2px";
+                          // button1.style.color = "white";
+                          // button1.style.transitionDuration = "0.4s";
+                          // button1.style.padding = "5px 5px";
 
                           img.src=houseobj[x].img;
                           img.style.width= "300px";
