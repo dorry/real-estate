@@ -1,12 +1,16 @@
 <!DOCTYPE <!DOCTYPE html>
 <html>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css" type="text/css" media="screen"
+  />
+  <link rel="stylesheet" href="css/main.css" type="text/css" media="screen" />
 <head>
 </head>
 <script>
 function redirectto()
-                    {
-                      window.location.replace("HomePage.php");
-                    }
+{
+  window.location.replace("HomePage.php");
+}
 </script>
 <?php
 session_start();
@@ -18,14 +22,14 @@ class property{
   public $address;
   public $img;
   public $houseName;
-  public function __construct($price,$size,$address,$img,$houseName){
-      $this->price = $price;
-      $this->size = $size;
-      $this->address = $address;
-      $this->img = $img;
-      $this->houseName = $houseName;
+  public function __construct($price,$size,$address,$img,$houseName)
+  {
+    $this->price = $price;
+    $this->size = $size;
+    $this->address = $address;
+    $this->img = $img;
+    $this->houseName = $houseName;
   }
-
 }
 $conn = mysqli_connect('localhost','root','','real_estate');
 $selectQuery="select * from property";
@@ -177,12 +181,20 @@ mysqli_close($con);
 <?php
 if(!empty($_SESSION))
 {
-  echo "<li style = 'color:white;padding-right:5px'>Welcome, ".$_SESSION['username']." </li>";
+  echo "<div class='dropdown'>";
+  echo "<button class='dropbtn' onclick='accountDrop()'>".$_SESSION['username']." ";
+  echo "<i class='fa fa-caret-down'></i>";
+  echo "</button>";
+  echo "<div class='dropdown-content' id='myDropdown'>";
+  echo "<a href='#'>Account</a>";
+  echo "<a href='#' id ='messages'>Messages</a>";
   echo "<form action = 'signout.php'>";
   echo "<li><button class= 'Signout' id='signout'> Signout</button></li>";
   echo "</form>";
   $isLogedIn = 1;
   json_encode($isLogedIn);
+  echo "</div>";
+  echo "</div>";
 }
 else
 {
@@ -499,6 +511,27 @@ else
        </div>
     </div>
 </div>
+<div id="myModalmsg" class="modalmsg">
+  <div class="modal-contentmsg">
+    <span class="closemsg">&times;</span>
+      <div class="container">
+        <header class="header">
+            <h1>rChat</h1>
+        </header>
+        <main>
+            <div class="userSettings">
+                <label for="userName">Username:</label>
+                <input id="userName" type="text" placeholder="Username" maxlength="32" value="Somebody">
+            </div>
+            <div class="chat">
+                <div id="chatOutput"></div>
+                <input id="chatInput" type="text" placeholder="Input Text here" maxlength="128">
+                <button id="chatSend">Send</button>
+            </div>
+        </main>
+    </div>
+    </div>
+    </div>
 </body>
 <style>
     body{
@@ -531,23 +564,24 @@ text-decoration: none;
 
 #login
 {
-color: #6B9FE2;
+color: #4caf50;
 font-weight: bold;
 
 }
 
 .Signout
 {
-  background-color:#101010;
+  background:transparent;
+  padding: 12px 16px;
+  text-decoration: none;
+  text-align: left;
   border:none;
-  font-size:18px;
-  color: #6B9FE2;
-  font-weight: bold;
-
+  font-size: 16px;
+  cursor:pointer;
 }
 #signup
 {
-color: #6B9FE2;
+color: #4caf50;
 font-weight: bold;    
 }
 
@@ -1032,6 +1066,180 @@ margin-right:10px;
     border-bottom: 5px solid rgb(168, 168, 168);
     transition: 0.5s all;
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  .modalmsg {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  padding-top: 100px; /* Location of the box */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content */
+.modal-contentmsg {
+  background-color: #fefefe;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+}
+
+/* The Close Button */
+.closemsg {
+  color: #aaaaaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.closemsg:hover,
+.closemsg:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.dropbtn{
+  background-color:#101010;
+  border:none;
+  color: #4caf50;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 16px;
+}
+.navbar a {
+  float: left;
+  font-size: 16px;
+  color: white;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+.dropdown {
+  float: left;
+  overflow: hidden;
+}
+
+.dropdown {
+  cursor: pointer;
+  font-size: 16px;  
+  border: none;
+  outline: none;
+  color: white;
+  background-color: inherit;
+  font-family: inherit;
+  margin: 0;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 120px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown-content a {
+  float: none;
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  text-align: left;
+}
+
+.dropdown-content a:hover {
+  background-color: #ddd;
+}
+
+.show {
+  display: block;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+.userSettings {
+    margin-bottom: 20px;
+}
+
+.chat {
+    max-width: 400px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.chat #chatOutput {
+    overflow-y: scroll;
+    height: 280px;
+    width: 100%;
+    border: 1px solid #777;
+}
+
+.chat #chatOutput p {
+    margin: 0;
+    padding: 5px;
+    border-bottom: 1px solid #bbb;
+    word-break: break-all;
+}
+
+.chat #chatInput {
+    width: 75%;
+}
+
+.chat #chatSend {
+    width: 25%;
+}
 </style>
 <script>
         var houses = <?php echo $payload ?>;
@@ -1200,5 +1408,80 @@ margin-right:10px;
                         }
                     }
                     
+                    var modalMsg= document.getElementById('myModalmsg');
+                    var btnMsg = document.getElementById("messages");
+                    var spanMsg = document.getElementsByClassName("closemsg")[0];
+                    btnMsg.onclick = function() {
+                      modalMsg.style.display = "block";
+                    }
+                    spanMsg.onclick = function() {
+                      modalMsg.style.display = "none";
+                    }
+                    window.onclick = function(event) {
+                      if (event.target == modalMsg) {
+                        modalMsg.style.display = "none";
+                      }
+                    }
+
+
+
+
+                    function accountDrop() {
+                      document.getElementById("myDropdown").classList.toggle("show");
+                    }
+
+                    // Close the dropdown if the user clicks outside of it
+                    window.onclick = function(e) {
+                      if (!e.target.matches('.dropbtn')) {
+                      var myDropdown = document.getElementById("myDropdown");
+                        if (myDropdown.classList.contains('show')) {
+                          myDropdown.classList.remove('show');
+                        }
+                      }
+                    }
+
+
+
+
+
+
+
+
+
+
+                    $(document).ready(function() {
+                    var chatInterval = 250; //refresh interval in ms
+                    var $userName = $("#userName");
+                    var $chatOutput = $("#chatOutput");
+                    var $chatInput = $("#chatInput");
+                    var $chatSend = $("#chatSend");
+
+                    function sendMessage() {
+                        var userNameString = $userName.val();
+                        var chatInputString = $chatInput.val();
+
+                        $.get("./write.php", {
+                            username: userNameString,
+                            text: chatInputString
+                        });
+
+                        $userName.val("");
+                        retrieveMessages();
+                    }
+
+                    function retrieveMessages() {
+                        $.get("./read.php", function(data) {
+                            $chatOutput.html(data); //Paste content into chat output
+                        });
+                    }
+
+                    $chatSend.click(function() {
+                        sendMessage();
+                    });
+
+                    setInterval(function() {
+                        retrieveMessages();
+                    }, chatInterval);
+                });
   </script>
   </html>
