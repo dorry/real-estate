@@ -299,7 +299,7 @@ if (isset($_POST["submit"])) {
                     required=""
                     
                   />
-                  <input name="submitProperty"type="submit" value="Add Property" />
+                  <input required ="" name="submitProperty"type="submit" value="Add Property" />
 
               </form>
           </div>

@@ -10,7 +10,9 @@ function redirectto()
 </script>
 <?php
 session_start();
-$username = $passwordErr = $emailErr = $nameErr = $email = $password = $mobileno = "";
+$isLogedIn=0;
+$username = $passwordErr = $emailErr = $nameErr = $email = $password = $mobileno = $country = $city = $region = $address = $size = $price ="";
+
 class property{
   public $price;
   public $size;
@@ -40,6 +42,10 @@ if(mysqli_num_rows($result)>0){
 $payload = json_encode($allProperties);
 
 if (isset($_POST["submit"])) {
+  switch($_POST['submit']) {
+    case 'Create Account':
+$conn = mysqli_connect('localhost','root','','real_estate');
+
   if (!preg_match("/^[a-zA-Z\d ]*$/",$_POST["username"])) {
     $nameErr = "Only letters,numbers and white space allowed"; 
     
@@ -68,9 +74,51 @@ if (isset($_POST["submit"])) {
     mysqli_close($conn);
    
   }
-}
-else if (isset($_POST["submitlogin"]))
-{
+  break;
+
+  case 'Add Property':
+  
+  $conn = mysqli_connect('localhost','root','','real_estate');
+
+    echo  $_POST['country'];
+    $country = $_POST['country'];
+    $country = mysqli_real_escape_string($conn,$country);
+    $city = $_POST["city"];
+    $city = mysqli_real_escape_string($conn,$city);
+    
+    $address = $_POST['address'];
+    $address = mysqli_real_escape_string($conn,$address);
+    $size = $_POST['size'];
+    $size = mysqli_real_escape_string($conn,$size);
+    $price = $_POST['price'];
+    $price = mysqli_real_escape_string($conn,$price);
+     
+    $addressArr = explode(",",$address);
+    $buildingNum = $addressArr[0];
+    $buildingNum = mysqli_real_escape_string($conn,$buildingNum);    
+    $street = $addressArr[1];
+    $street = mysqli_real_escape_string($conn , $street);
+    $district = $addressArr[2];
+    $district = mysqli_real_escape_string($conn , $district);
+    $floor = $addressArr[3];
+    $floor = mysqli_real_escape_string($conn , $floor);
+    $apartment = $addressArr[4];
+    $apartment = mysqli_real_escape_string($conn , $apartment);
+     for ($i = 0; $i<3; $i++) {
+      
+      echo $addressArr[$i].",";
+    }
+   
+
+   $inserAddressQuery = "insert into address (country,city.district,buildingNumber,streetName,floor,apartmentNumber) values ('$country','$city','$district','$buildingNum','$street','$floor','$apartment') ";
+  //$submitPropertyQuery = "insert into property (photo,locationId,description,price,size) values ('$file',1,'the coolest apartment ever',1000000,400)";
+
+
+    break;
+  
+
+
+case 'Login': 
   $connlogin = mysqli_connect('localhost','root','','real_estate');
   $usernamelogin = $_POST['usernameloginf'];
   $passwordlogin = $_POST['passwordloginf'];
@@ -83,14 +131,12 @@ else if (isset($_POST["submitlogin"]))
     if ($rowlogin['username'] == $usernamelogin && $rowlogin['password'] == $passwordlogin)
     {
         $_SESSION['username']= $usernamelogin;
-        header("Location:BuyPage.php");
+        header("Location:Homepage.php");
         return true;
     }
     else
     {
-        
         echo "<script>";
-        
         echo "redirectto();";
         echo "alert('Invalid Username or Password');";
         echo "</script>";
@@ -100,9 +146,7 @@ else if (isset($_POST["submitlogin"]))
   }
   else
   {
-    
       echo "<script>";
-      
       echo "redirectto();";
       echo "alert('Invalid Username or Password');";
       echo "</script>";
@@ -110,8 +154,12 @@ else if (isset($_POST["submitlogin"]))
       return false;
   }
   
-  mysqli_close($con);
-}
+ 
+ 
+  break;
+mysqli_close($con);
+ }}
+
 ?>
 <body>
     
@@ -119,16 +167,13 @@ else if (isset($_POST["submitlogin"]))
     <ul class = "NavigationBar">
 
         <li class="first-element-nav"><a class="nav-element" href="#Buy" onclick = "location.href = '../Components/BuyPage.php'">Buy</a></li>
-        <div class="line-between"></div>
-    
-    
-        <li  ><a class="nav-element" href="#Rent" onclick = "location.href = '../Components/SellPage.php'">Rent</a></li>
-        <div class="line-between"></div>
-        <li  ><a class="nav-element" href="#MortGages">MortGages</a></li>
-        <div class="line-between"></div>
-        <li  ><a class="nav-element" href="#AgentFinder">AgentFinder</a></li> 
-        <div class="line-between"></div>
-        <li> <a href = "#Add property" id="add-property">AddProperty</a> </li>
+<div class="line-between"></div>
+
+
+<li  ><a class="nav-element" href="#Add property" id="add-property" ">Sell</a></li>
+<div class="line-between"></div>
+<li  ><a class="nav-element" href="#MortGages">About Us</a></li>
+
         <div class="login-signup">
         <?php
         if(!empty($_SESSION))
@@ -137,6 +182,8 @@ else if (isset($_POST["submitlogin"]))
           echo "<form action = 'signout.php'>";
           echo "<li><button class= 'Signout' id='signout'> Signout</button></li>";
           echo "</form>";
+          $isLogedIn = 1;
+          json_encode($isLogedIn);
         }
         else
         {
@@ -170,7 +217,7 @@ else if (isset($_POST["submitlogin"]))
                 <div class="propertyAdd">
                 <span class="closeProperty">&times;</span>
                   <h2>Add Your Property</h2>
-                  <form method="post">
+                  <form method="post" enctype="multipart/form-data">
                       
                    <h5>Country <span>* </span></h5>
                    <p></p>
@@ -329,26 +376,23 @@ else if (isset($_POST["submitlogin"]))
                 <p></p>
                     <h5>City <span>* </span></h5>
                     
-                    <input type="text" name="City"
+                    <input type="text" name="city"
                       required=""
                       
                     />
-                    <h5>Region <span>* </span></h5>
-
-                    <input type="text" name="Region"
-                    required=""
+                 
                     
-                  />
+             
                     <h5>Address<span>* </span></h5>
                     <input  type="text" placeholder="Apartment, suite, unit, building, floor, etc.."
                     required=""
-                      
+                    name="address"
                     />
                     <h5>Size<span>* </span></h5>
 
                     <input
                       type="text"
-                      name="Size"
+                      name="size"
                       required=""
                       
                     />
@@ -356,11 +400,13 @@ else if (isset($_POST["submitlogin"]))
 
                     <input
                     type="text"
-                    name="Price"
+                    name="price"
                     required=""
                     
                   />
-                  <input name="submitProperty"type="submit" value="Add Property" />
+                  <h5>upload image<span>* </span></h5>
+                  <input required="" type = "file" name="insertImage" class="imageBtn" >
+                  <input name="submit"type="submit" value="Add Property" />
 
               </form>
           </div>
@@ -443,7 +489,7 @@ else if (isset($_POST["submitlogin"]))
                 name="passwordloginf"
                 required=""
               />
-              <input name="submitlogin"type="submit" value="Login" />
+              <input name="submit"type="submit" value="Login" />
             </form>
           </div>
         </div>
@@ -473,6 +519,10 @@ list-style-type: none;
 width: 100%;
 margin-block-end: 0px;
 
+}
+.imageBtn{
+  margin:20px;
+  margin-left:0px
 }
 a
 {
@@ -929,7 +979,8 @@ a:hover
   }
 </style>
 <script>
-      var houses = <?php echo $payload ?>
+      var houses = <?php echo $payload ?>;
+      var isLogedIn = <?php echo $isLogedIn ?>;
       // var houses = [{houseName:"Villa 1", 
       //               price:200000, 
       //               address:"20 Omar Ibn Elkhatab Street, Sheraton Helioplis",
@@ -1096,11 +1147,13 @@ a:hover
                   }
                 render(houses);
                 var modal = document.getElementById('myModal');
-                var btn = document.getElementById("Signup");
+              
                 var span = document.getElementsByClassName("close")[0];
-                btn.onclick = function() {
-                    modal.style.display = "block";
-                }
+                 if(isLogedIn ==0){
+                    var btn = document.getElementById("Signup");
+                    btn.onclick = function() {
+                        modal.style.display = "block";
+                    }}
                 span.onclick = function() {
                     modal.style.display = "none";
                 }
@@ -1109,6 +1162,7 @@ a:hover
                         modal.style.display = "none";
                     }
                 }
+                if(isLogedIn ==0){
                 var modallog = document.getElementById('myModallogin');
                 var btnlog = document.getElementById("login");
                 var spanlog = document.getElementsByClassName("closelogin")[0];
@@ -1122,7 +1176,7 @@ a:hover
                     if (event.target == modallog) {
                         modallog.style.display = "none";
                     }
-                }
+                }}
                 var AddProperty = document.getElementById('addProperty');
                     var btn1 = document.getElementById("add-property");
                     var span1 = document.getElementsByClassName("closeProperty")[0];
