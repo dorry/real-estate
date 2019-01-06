@@ -79,52 +79,8 @@ $conn = mysqli_connect('localhost','root','','real_estate');
     mysqli_close($conn);
     echo "gi";
   }
+  mysqli_close($conn);
   break;
-
-  case 'Add Property':
-  
-  $conn = mysqli_connect('localhost','root','','real_estate');
-
-
-    $country = $_POST['country'];
-    $country = mysqli_real_escape_string($conn,$country);
-    $city = $_POST["city"];
-    $city = mysqli_real_escape_string($conn,$city);
-    $imgFile = addslashes(file_get_contents($_FILES["insertImage"]["tmp_name"]));
-    $address = $_POST['address'];
-    $address = mysqli_real_escape_string($conn,$address);
-    $size = $_POST['size'];
-    $size = mysqli_real_escape_string($conn,$size);
-    $price = $_POST['price'];
-    $price = mysqli_real_escape_string($conn,$price);
-    $description = $_POST["description"];
-    $description = mysqli_real_escape_string($conn,$description);
-    $addressArr = explode(",",$address);
-    $buildingNum = $addressArr[0];
-    $buildingNum = mysqli_real_escape_string($conn,$buildingNum);    
-    $street = $addressArr[1];
-    $street = mysqli_real_escape_string($conn , $street);
-    $district = $addressArr[2];
-    $district = mysqli_real_escape_string($conn , $district);
-    $floor = $addressArr[3];
-    $floor = mysqli_real_escape_string($conn , $floor);
-    $apartment = $addressArr[4];
-    $apartment = mysqli_real_escape_string($conn , $apartment);
-    
-
-   $insertAddressQuery = "insert into address (country,city,district,buildingNumber,streetName,floor,apartmentNumber)
-    values ('$country','$city','$district','$buildingNum','$street','$floor','$apartment') ";
-
-   mysqli_query($conn,$insertAddressQuery);
-   $submitPropertyQuery = "insert into property (price , isAvailable , locationId , size , description , photo , addressId ) 
-   values ('$price', 1 , 1 , '$size' , '$description' , '$imgFile' , 
-   (select id from address where country = '$country' AND city = '$city' AND district = '$district' And
-    buildingNumber = '$buildingNum' AND streetName = '$street' AND  floor = '$floor' AND apartmentNumber = '$apartment'))";
-   mysqli_query($conn,$submitPropertyQuery);
-
-    break;
-  
-
 
 case 'Login': 
   $connlogin = mysqli_connect('localhost','root','','real_estate');
@@ -160,23 +116,17 @@ case 'Login':
       echo "</script>";
       return false;
   }
-  
- 
- 
+  mysqli_close($connlogin);
   break;
-mysqli_close($conn);
- }}
+ }
+}
 
 ?>
 <body>
-
 <ul class = "NavigationBar">
-
 <li class="first-element-nav"><a class="nav-element" href="#Buy" onclick = "location.href = '../Components/BuyPage.php'">Buy</a></li>
 <div class="line-between"></div>
-
-
-<li  ><a class="nav-element" href="#Add property" id="add-property" >Sell</a></li>
+<li  ><a class="nav-element" href="#Add property" id="add-property" onclick = "location.href = '../Components/SellPage.php'" >Sell</a></li>
 <div class="line-between"></div>
 <li  ><a class="nav-element" href="#MortGages">About Us</a></li>
 
@@ -289,214 +239,6 @@ else
         </div>
        </div>
     </div>
-    <div id="addProperty" class="add-property">
-               
-               <div class="modal-property">
-                 
-                 <div class="propertyFill">
-               <div class="propertyAdd">
-               <span class="closeProperty">&times;</span>
-                 <h2>Add Your Property</h2>
-                 <form method="post" enctype="multipart/form-data">
-                     
-                  <h5>Country <span>* </span></h5>
-                  <p></p>
-
-                  <select name="country">
-                         <option value="">Country...</option>
-                         
-                         <option value="Albania">Albania</option>
-                         <option value="Algeria">Algeria</option>
-                         <option value="Angola">Angola</option>               
-                         <option value="Argentina">Argentina</option>
-                         <option value="Armenia">Armenia</option>  
-                         <option value="Australia">Australia</option>
-                         <option value="Austria">Austria</option>
-                         <option value="Azerbaijan">Azerbaijan</option>
-                         <option value="Bahrain">Bahrain</option>
-                         <option value="Belarus">Belarus</option>
-                         <option value="Belgium">Belgium</option>
-                         <option value="Botswana">Botswana</option>
-                         <option value="Brazil">Brazil</option>
-                         <option value="Bulgaria">Bulgaria</option>
-                         <option value="Burkina Faso">Burkina Faso</option>
-                         <option value="Burundi">Burundi</option>
-                         <option value="Cambodia">Cambodia</option>
-                         <option value="Cameroon">Cameroon</option>
-                         <option value="Canada">Canada</option>
-                         <option value="Chad">Chad</option>
-                         <option value="Channel Islands">Channel Islands</option>
-                         <option value="Chile">Chile</option>
-                         <option value="China">China</option>
-                         <option value="Colombia">Colombia</option>
-                         <option value="Comoros">Comoros</option>
-                         <option value="Congo">Congo</option>
-                         <option value="Costa Rica">Costa Rica</option>
-                         <option value="Cote DIvoire">Cote D'Ivoire</option>
-                         <option value="Croatia">Croatia</option>
-                         <option value="Cuba">Cuba</option>
-                         <option value="Curaco">Curacao</option>
-                         <option value="Cyprus">Cyprus</option>
-                         <option value="Czech Republic">Czech Republic</option>
-                         <option value="Denmark">Denmark</option>
-                         <option value="Dominica">Dominica</option>
-                         <option value="Ecuador">Ecuador</option>
-                         <option value="Egypt">Egypt</option>
-                         <option value="Estonia">Estonia</option>
-                         <option value="Ethiopia">Ethiopia</option>
-                         <option value="Finland">Finland</option>
-                         <option value="France">France</option>
-                         <option value="Gabon">Gabon</option>
-                         <option value="Gambia">Gambia</option>
-                         <option value="Georgia">Georgia</option>
-                         <option value="Germany">Germany</option>
-                         <option value="Ghana">Ghana</option>
-                         <option value="Greece">Greece</option>
-                         <option value="Greenland">Greenland</option>
-                         <option value="Honduras">Honduras</option>
-                         <option value="Hong Kong">Hong Kong</option>
-                         <option value="Hungary">Hungary</option>
-                         <option value="Iceland">Iceland</option>
-                         <option value="India">India</option>
-                         <option value="Indonesia">Indonesia</option>
-                         <option value="Iran">Iran</option>
-                         <option value="Iraq">Iraq</option>
-                         <option value="Ireland">Ireland</option>
-                         <option value="Italy">Italy</option>
-                         <option value="Jamaica">Jamaica</option>
-                         <option value="Japan">Japan</option>
-                         <option value="Jordan">Jordan</option>
-                         <option value="Kazakhstan">Kazakhstan</option>
-                         <option value="Kenya">Kenya</option>
-                         <option value="Korea North">Korea North</option>
-                         <option value="Korea Sout">Korea South</option>
-                         <option value="Kuwait">Kuwait</option>
-                         <option value="Latvia">Latvia</option>
-                         <option value="Lebanon">Lebanon</option>
-                         <option value="Liberia">Liberia</option>
-                         <option value="Libya">Libya</option>
-                         <option value="Luxembourg">Luxembourg</option>
-                         <option value="Macedonia">Macedonia</option>
-                         <option value="Madagascar">Madagascar</option>
-                         <option value="Malaysia">Malaysia</option>
-                         <option value="Malawi">Malawi</option>
-                         <option value="Maldives">Maldives</option>
-                         <option value="Mali">Mali</option>
-                         <option value="Malta">Malta</option>
-                         <option value="Marshall Islands">Marshall Islands</option>
-                         <option value="Martinique">Martinique</option>
-                         <option value="Mayotte">Mayotte</option>
-                         <option value="Mexico">Mexico</option>
-                         <option value="Morocco">Morocco</option>
-                         <option value="Nambia">Nambia</option>
-                         <option value="Nauru">Nauru</option>
-                         <option value="Nepal">Nepal</option>
-                         <option value="Netherland Antilles">Netherland Antilles</option>
-                         <option value="Netherlands">Netherlands (Holland, Europe)</option>
-                         <option value="Nevis">Nevis</option>
-                         <option value="New Caledonia">New Caledonia</option>
-                         <option value="New Zealand">New Zealand</option>
-                         <option value="Nicaragua">Nicaragua</option>
-                         <option value="Niger">Niger</option>
-                         <option value="Nigeria">Nigeria</option>
-                         <option value="Niue">Niue</option>
-                         <option value="Norfolk Island">Norfolk Island</option>
-                         <option value="Norway">Norway</option>
-                         <option value="Oman">Oman</option>
-                         <option value="Pakistan">Pakistan</option>
-                         <option value="Palau Island">Palau Island</option>
-                         <option value="Palestine">Palestine</option>
-                         <option value="Panama">Panama</option>
-                         <option value="Paraguay">Paraguay</option>
-                         <option value="Peru">Peru</option>
-                         <option value="Poland">Poland</option>
-                         <option value="Portugal">Portugal</option>
-                         <option value="Puerto Rico">Puerto Rico</option>
-                         <option value="Qatar">Qatar</option>
-                         <option value="Republic of Montenegro">Republic of Montenegro</option>
-                         <option value="Republic of Serbia">Republic of Serbia</option>
-                         <option value="Romania">Romania</option>
-                         <option value="Russia">Russia</option>
-                         <option value="Saudi Arabia">Saudi Arabia</option>
-                         <option value="Senegal">Senegal</option>
-                         <option value="Serbia">Serbia</option>
-                         <option value="Slovakia">Slovakia</option>
-                         <option value="Slovenia">Slovenia</option>
-                         <option value="South Africa">South Africa</option>
-                         <option value="Spain">Spain</option>
-                         <option value="Sri Lanka">Sri Lanka</option>
-                         <option value="Sudan">Sudan</option>
-                         <option value="Suriname">Suriname</option>
-                         <option value="Swaziland">Swaziland</option>
-                         <option value="Sweden">Sweden</option>
-                         <option value="Switzerland">Switzerland</option>
-                         <option value="Syria">Syria</option>
-                         <option value="Taiwan">Taiwan</option>
-                         <option value="Tajikistan">Tajikistan</option>
-                         <option value="Tanzania">Tanzania</option>
-                         <option value="Thailand">Thailand</option>
-                         <option value="Togo">Togo</option>
-                         <option value="Tunisia">Tunisia</option>
-                         <option value="Turkey">Turkey</option>
-                         <option value="Uganda">Uganda</option>
-                         <option value="Ukraine">Ukraine</option>
-                         <option value="United Arab Erimates">United Arab Emirates</option>
-                         <option value="United Kingdom">United Kingdom</option>
-                         <option value="United States of America">United States of America</option>
-                         <option value="Uraguay">Uruguay</option>
-                         <option value="Uzbekistan">Uzbekistan</option>
-                         <option value="Vietnam">Vietnam</option>
-                         <option value="Yemen">Yemen</option>
-                        
-                         <option value="Zambia">Zambia</option>
-                         <option value="Zimbabwe">Zimbabwe</option>
-                         </select>
- 
-                  
-               <p></p>
-                   <h5>City <span>* </span></h5>
-                   
-                   <input type="text" name="city"
-                     required=""
-                     
-                   />
-               
-                   <h5>Address<span>* </span></h5>
-                   <input  type="text" placeholder="Apartment, suite, unit, building, floor, etc.."
-                   required=""
-                   name="address"
-                   />
-                   <h5>Size<span>* </span></h5>
-
-                   <input
-                     type="text"
-                     name="size"
-                     required=""
-                     
-                   />
-                   <h5>Price<span>* </span></h5>
-
-                   <input
-                   type="text"
-                   name="price"
-                   required=""
-                   
-                 />
-                 <h5>Description<span>* </span></h5>
-                  <input  type="text"
-                    required=""
-                    name="description"
-                  />
-                  <h5>upload image<span>* </span></h5>
-                  <input required="" type = "file" name="insertImage" id ="insertImage" class="imageBtn" >
-
-                 <input name="submit"type="submit" id="submit" value="Add Property" />
-
-             </form>
-         </div>
-       </div>
-      </div>
-   </div>
  </div>
  <div id="myModallogin" class="modallogin">
         <!-- Modal content -->
@@ -1436,39 +1178,6 @@ h1{
                             modallog.style.display = "none";
                         }
                     }}
-                    var AddProperty = document.getElementById('addProperty');
-                    var btn1 = document.getElementById("add-property");
-                    var span1 = document.getElementsByClassName("closeProperty")[0];
-                    btn1.onclick = function() {
-                        AddProperty.style.display = "block";
-                    }
-                    span1.onclick = function() {
-                        AddProperty.style.display = "none";
-                    }
-                    window.onclick = function(event) {
-                        if (event.target == AddProperty) {
-                            AddProperty.style.display = "none";
-                        }
-                    }
-                    
-                    var modalMsg= document.getElementById('myModalmsg');
-                    if(isLogedIn == 1){
-                    var btnMsg = document.getElementById("messages");
-                    var spanMsg = document.getElementsByClassName("closemsg")[0];
-                    btnMsg.onclick = function() {
-                      modalMsg.style.display = "block";
-                    }
-                    spanMsg.onclick = function() {
-                      modalMsg.style.display = "none";
-                    }
-                    window.onclick = function(event) {
-                      if (event.target == modalMsg) {
-                        modalMsg.style.display = "none";
-                      }
-                      }
-                    }
-
-
 
                     function accountDrop() {
                       document.getElementById("myDropdown").classList.toggle("show");
@@ -1486,47 +1195,46 @@ h1{
                      
 
 
-
-                   validateImage();           
-
+   
 
 
 
 
-                    $(document).ready(function() {
-                    var chatInterval = 250; //refresh interval in ms
-                    var $userName = $("#userName");
-                    var $userNametwo = $("#userNametwo");
-                    var $chatOutput = $("#chatOutput");
-                    var $chatInput = $("#chatInput");
-                    var $chatSend = $("#chatSend");
 
-                    function sendMessage() {
-                        var userNameString = $userName.val();
-                        var userNameStringtwo = $userNametwo.val();
-                        var chatInputString = $chatInput.val();
+                //     $(document).ready(function() {
+                //     var chatInterval = 250; //refresh interval in ms
+                //     var $userName = $("#userName");
+                //     var $userNametwo = $("#userNametwo");
+                //     var $chatOutput = $("#chatOutput");
+                //     var $chatInput = $("#chatInput");
+                //     var $chatSend = $("#chatSend");
 
-                        $.get("./write.php", {
-                            username: userNameString,
-                            usernametwo: userNameStringtwo,
-                            text: chatInputString
-                        });
-                        retrieveMessages();
-                    }
+                //     function sendMessage() {
+                //         var userNameString = $userName.val();
+                //         var userNameStringtwo = $userNametwo.val();
+                //         var chatInputString = $chatInput.val();
 
-                    function retrieveMessages() {
-                        $.get("./read.php", function(data) {
-                            $chatOutput.html(data); //Paste content into chat output
-                        });
-                    }
+                //         $.get("./write.php", {
+                //             username: userNameString,
+                //             usernametwo: userNameStringtwo,
+                //             text: chatInputString
+                //         });
+                //         retrieveMessages();
+                //     }
 
-                    $chatSend.click(function() {
-                        sendMessage();
-                    });
+                //     function retrieveMessages() {
+                //         $.get("./read.php", function(data) {
+                //             $chatOutput.html(data); //Paste content into chat output
+                //         });
+                //     }
 
-                    setInterval(function() {
-                        retrieveMessages();
-                    }, chatInterval);
-                });
+                //     $chatSend.click(function() {
+                //         sendMessage();
+                //     });
+
+                //     setInterval(function() {
+                //         retrieveMessages();
+                //     }, chatInterval);
+                // });
   </script>
   </html>
