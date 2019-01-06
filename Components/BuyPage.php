@@ -14,21 +14,21 @@ function redirectto()
 </script>
 <?php
 session_start();
-
-$username = $passwordErr = $emailErr = $nameErr = $email = $password = $mobileno = $country = $city = $region = $address = $size = $price ="";
 $isLogedIn=0;
+$username = $imgFile = $passwordErr = $description = $emailErr = $nameErr = $email = $password = $mobileno = $country = $city = $region = $address = $size = $price ="";
 class property{
   public $price;
   public $size;
   public $address;
   public $img;
-  public $houseName;
-  public function __construct($price,$size,$address,$img,$houseName){
+ 
+  public function __construct($price,$size,$address,$img){
       $this->price = $price;
       $this->size = $size;
       $this->address = $address;
       $this->img = $img;
-      $this->houseName = $houseName;
+    
+      
   }
 
 }
@@ -38,7 +38,7 @@ $result = mysqli_query($conn,$selectQuery);
 $allProperties = array();
 if(mysqli_num_rows($result)>0){
     while($row = mysqli_fetch_assoc($result)){
-        array_push($allProperties,new property($row['price'],$row['size'],$row['description'],'../assets/pic2.jpg','villa'));
+        array_push($allProperties,new property($row['price'],$row['size'],$row['description'],base64_encode($row['photo'])));
     }}
     else{
         echo "0 results";
@@ -84,19 +84,20 @@ $conn = mysqli_connect('localhost','root','','real_estate');
   
   $conn = mysqli_connect('localhost','root','','real_estate');
 
-    echo  $_POST['country'];
+
     $country = $_POST['country'];
     $country = mysqli_real_escape_string($conn,$country);
     $city = $_POST["city"];
     $city = mysqli_real_escape_string($conn,$city);
-    
+    $imgFile = addslashes(file_get_contents($_FILES["insertImage"]["tmp_name"]));
     $address = $_POST['address'];
     $address = mysqli_real_escape_string($conn,$address);
     $size = $_POST['size'];
     $size = mysqli_real_escape_string($conn,$size);
     $price = $_POST['price'];
     $price = mysqli_real_escape_string($conn,$price);
-     
+    $description = $_POST["description"];
+    $description = mysqli_real_escape_string($conn,$description);
     $addressArr = explode(",",$address);
     $buildingNum = $addressArr[0];
     $buildingNum = mysqli_real_escape_string($conn,$buildingNum);    
@@ -108,15 +109,17 @@ $conn = mysqli_connect('localhost','root','','real_estate');
     $floor = mysqli_real_escape_string($conn , $floor);
     $apartment = $addressArr[4];
     $apartment = mysqli_real_escape_string($conn , $apartment);
-     for ($i = 0; $i<3; $i++) {
-      
-      echo $addressArr[$i].",";
-    }
-   
+    
 
-   $inserAddressQuery = "insert into address (country,city.district,buildingNumber,streetName,floor,apartmentNumber) values ('$country','$city','$district','$buildingNum','$street','$floor','$apartment') ";
-  //$submitPropertyQuery = "insert into property (photo,locationId,description,price,size) values ('$file',1,'the coolest apartment ever',1000000,400)";
+   $insertAddressQuery = "insert into address (country,city,district,buildingNumber,streetName,floor,apartmentNumber)
+    values ('$country','$city','$district','$buildingNum','$street','$floor','$apartment') ";
 
+   mysqli_query($conn,$insertAddressQuery);
+   $submitPropertyQuery = "insert into property (price , isAvailable , locationId , size , description , photo , addressId ) 
+   values ('$price', 1 , 1 , '$size' , '$description' , '$imgFile' , 
+   (select id from address where country = '$country' AND city = '$city' AND district = '$district' And
+    buildingNumber = '$buildingNum' AND streetName = '$street' AND  floor = '$floor' AND apartmentNumber = '$apartment'))";
+   mysqli_query($conn,$submitPropertyQuery);
 
     break;
   
@@ -159,7 +162,7 @@ case 'Login':
  
  
   break;
-mysqli_close($con);
+mysqli_close($conn);
  }}
 
 ?>
@@ -392,7 +395,6 @@ mysqli_close($con);
                     />
                  
                     
-             
                     <h5>Address<span>* </span></h5>
                     <input  type="text" placeholder="Apartment, suite, unit, building, floor, etc.."
                     required=""
@@ -414,9 +416,15 @@ mysqli_close($con);
                     required=""
                     
                   />
+                  <h5>Description<span>* </span></h5>
+                  <input  type="text"
+                    required=""
+                    name="description"
+                  />
                   <h5>upload image<span>* </span></h5>
+            
                   <input required="" type = "file" name="insertImage" class="imageBtn" >
-                  <input name="submit"type="submit" value="Add Property" />
+                  <input name="submit" type="submit" value="Add Property" />
 
               </form>
           </div>
@@ -1289,7 +1297,7 @@ a:hover
                         
                         img.style.borderTopLeftRadius = "5%";
                         img.style.borderTopRightRadius = "5%";
-                        img.src=houseobj[x].img;
+                        img.src="data:image/jpeg;base64," + houseobj[x].img;
                         img.style.width= "300px";
                         img.style.height= "200px";
                         priceContainer.style.fontWeight= "bold";

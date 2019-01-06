@@ -14,22 +14,24 @@ function redirectto()
 </script>
 <?php
 session_start();
-$username = $buildingNum = $street = $district = $floor = $apartment = $passwordErr = $emailErr = $nameErr = $email = $password = $mobileno = $country = $city = $region = $address = $size = $price ="";
 $isLogedIn=0;
+$username = $imgFile = $passwordErr = $description = $emailErr = $nameErr = $email = $password = $mobileno = $country = $city = $region = $address = $size = $price ="";
+
 class property{
   public $price;
   public $size;
   public $address;
   public $img;
-  public $houseName;
-  public function __construct($price,$size,$address,$img,$houseName)
-  {
-    $this->price = $price;
-    $this->size = $size;
-    $this->address = $address;
-    $this->img = $img;
-    $this->houseName = $houseName;
+ 
+  public function __construct($price,$size,$address,$img){
+      $this->price = $price;
+      $this->size = $size;
+      $this->address = $address;
+      $this->img = $img;
+    
+      
   }
+
 }
 $conn = mysqli_connect('localhost','root','','real_estate');
 $selectQuery="select * from property";
@@ -37,12 +39,13 @@ $result = mysqli_query($conn,$selectQuery);
 $allProperties = array();
 if(mysqli_num_rows($result)>0){
     while($row = mysqli_fetch_assoc($result)){
-        array_push($allProperties,new property($row['price'],$row['size'],$row['description'],'../assets/pic2.jpg','villa'));
+        array_push($allProperties,new property($row['price'],$row['size'],$row['description'],base64_encode($row['photo'])));
     }}
     else{
         echo "0 results";
     }
 $payload = json_encode($allProperties);
+
 if (isset($_POST["submit"])) {
   switch($_POST['submit']) {
     case 'Create Account':
@@ -82,19 +85,20 @@ $conn = mysqli_connect('localhost','root','','real_estate');
   
   $conn = mysqli_connect('localhost','root','','real_estate');
 
-    echo  $_POST['country'];
+
     $country = $_POST['country'];
     $country = mysqli_real_escape_string($conn,$country);
     $city = $_POST["city"];
     $city = mysqli_real_escape_string($conn,$city);
-    
+    $imgFile = addslashes(file_get_contents($_FILES["insertImage"]["tmp_name"]));
     $address = $_POST['address'];
     $address = mysqli_real_escape_string($conn,$address);
     $size = $_POST['size'];
     $size = mysqli_real_escape_string($conn,$size);
     $price = $_POST['price'];
     $price = mysqli_real_escape_string($conn,$price);
-     
+    $description = $_POST["description"];
+    $description = mysqli_real_escape_string($conn,$description);
     $addressArr = explode(",",$address);
     $buildingNum = $addressArr[0];
     $buildingNum = mysqli_real_escape_string($conn,$buildingNum);    
@@ -106,15 +110,17 @@ $conn = mysqli_connect('localhost','root','','real_estate');
     $floor = mysqli_real_escape_string($conn , $floor);
     $apartment = $addressArr[4];
     $apartment = mysqli_real_escape_string($conn , $apartment);
-     for ($i = 0; $i<3; $i++) {
-      echo trim($addressArr[$i]).",";
-      
-    }
-   
+    
 
-  // inserAddressQuery = 'insert into address (country,city.region,buildingNumber,streetName,floor,apartmentNumber) values ('$country') ';
-  // $submitPropertyQuery = "insert into property (photo,locationId,description,price,size) values ('$file',1,'the coolest apartment ever',1000000,400)";
+   $insertAddressQuery = "insert into address (country,city,district,buildingNumber,streetName,floor,apartmentNumber)
+    values ('$country','$city','$district','$buildingNum','$street','$floor','$apartment') ";
 
+   mysqli_query($conn,$insertAddressQuery);
+   $submitPropertyQuery = "insert into property (price , isAvailable , locationId , size , description , photo , addressId ) 
+   values ('$price', 1 , 1 , '$size' , '$description' , '$imgFile' , 
+   (select id from address where country = '$country' AND city = '$city' AND district = '$district' And
+    buildingNumber = '$buildingNum' AND streetName = '$street' AND  floor = '$floor' AND apartmentNumber = '$apartment'))";
+   mysqli_query($conn,$submitPropertyQuery);
 
     break;
   
@@ -143,7 +149,6 @@ case 'Login':
         echo "redirectto();";
         echo "alert('Invalid Username or Password');";
         echo "</script>";
-        
         return false;
     }
   }
@@ -153,14 +158,13 @@ case 'Login':
       echo "redirectto();";
       echo "alert('Invalid Username or Password');";
       echo "</script>";
-      
       return false;
   }
   
  
  
   break;
-mysqli_close($con);
+mysqli_close($conn);
  }}
 
 ?>
@@ -293,7 +297,7 @@ else
                <div class="propertyAdd">
                <span class="closeProperty">&times;</span>
                  <h2>Add Your Property</h2>
-                 <form method="post">
+                 <form method="post" enctype="multipart/form-data">
                      
                   <h5>Country <span>* </span></h5>
                   <p></p>
@@ -478,7 +482,15 @@ else
                    required=""
                    
                  />
-                 <input name="submit"type="submit" value="Add Property" />
+                 <h5>Description<span>* </span></h5>
+                  <input  type="text"
+                    required=""
+                    name="description"
+                  />
+                  <h5>upload image<span>* </span></h5>
+                  <input required="" type = "file" name="insertImage" id ="insertImage" class="imageBtn" >
+
+                 <input name="submit"type="submit" id="submit" value="Add Property" />
 
              </form>
          </div>
@@ -1208,14 +1220,10 @@ h1{
 
 
 
-
-
-
-
-
-
-
-
+.imageBtn{
+  margin:20px;
+  margin-left:0px
+}
 
 
 .userSettings {
@@ -1274,6 +1282,24 @@ h1{
         //               address:"20 Omar Ibn Elkhatab Street, Sheraton Helioplis",
         //               img: "../assets/pic1.jpg"}];
                   
+                  function validateImage(){
+                    $(document).ready(function(){ 
+                    
+                      $('#submit').click(function(){  
+                          var image_name = $('#insertImage').val();  
+                         
+                         
+                                var extension = $('#insertImage').val().split('.').pop().toLowerCase();  
+                                if(jQuery.inArray(extension, ['gif','png','jpg','jpeg']) == -1)  
+                                {  
+                                    alert('Invalid Image File');  
+                                    $('#insertImage').val('');  
+                                    return false;  
+                                  
+                          }  
+                      });  
+            });  
+                  }
                   function render(houseobj){
                       
                       Object.keys(houseobj).forEach((x)=>{
@@ -1312,7 +1338,7 @@ h1{
                           // button1.style.transitionDuration = "0.4s";
                           // button1.style.padding = "5px 5px";
 
-                          img.src=houseobj[x].img;
+                          img.src= "data:image/jpeg;base64," +houseobj[x].img;
                           img.style.width= "300px";
                           img.style.height= "200px";
                           priceContainer.style.fontWeight= "bold";
@@ -1351,7 +1377,7 @@ h1{
                         }
                     }
 
-                    img.src = houseobj[x].img;
+                     img.src= houseobj[x].img;
                     img.style.marginLeft = "7vw";
                     myDialog.style.borderWidth = "1px";
                     myDialog.style.borderColor = "green";
@@ -1377,6 +1403,8 @@ h1{
                     myDialog.showModal();
                   }
                   render(houses);
+                 
+
                     var modal = document.getElementById('myModal');
                     var span = document.getElementsByClassName("close")[0];
                     if(isLogedIn ==0){
@@ -1459,7 +1487,7 @@ h1{
 
 
 
-
+                   validateImage();           
 
 
 
