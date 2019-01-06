@@ -74,7 +74,7 @@ $conn = mysqli_connect('localhost','root','','real_estate');
     values ('$username','$email','$password',1)";
     mysqli_query($conn, $insertQuery);
     mysqli_close($conn);
-   
+    echo "gi";
   }
   break;
 
@@ -133,6 +133,7 @@ case 'Login':
     if ($rowlogin['username'] == $usernamelogin && $rowlogin['password'] == $passwordlogin)
     {
         $_SESSION['username']= $usernamelogin;
+        $usernamehtml = $_SESSION['username'];
         header("Location:Homepage.php");
         return true;
     }
@@ -287,9 +288,10 @@ else
     <div id="addProperty" class="add-property">
                
                <div class="modal-property">
-                 <span class="closeProperty">&times;</span>
+                 
                  <div class="propertyFill">
                <div class="propertyAdd">
+               <span class="closeProperty">&times;</span>
                  <h2>Add Your Property</h2>
                  <form method="post">
                      
@@ -514,14 +516,15 @@ else
 <div id="myModalmsg" class="modalmsg">
   <div class="modal-contentmsg">
     <span class="closemsg">&times;</span>
-      <div class="container">
+    <div class="container">
         <header class="header">
-            <h1>rChat</h1>
+            <h1>Messages</h1>
         </header>
         <main>
             <div class="userSettings">
                 <label for="userName">Username:</label>
-                <input id="userName" type="text" placeholder="Username" maxlength="32" value="Somebody">
+                <input id="userName" type="text" placeholder="Username" maxlength="32" value="<?php echo "".$_SESSION["username"].""; ?>">
+                <input id="userNametwo" type="text" placeholder="Usernametwo" maxlength="32" value="shehab">
             </div>
             <div class="chat">
                 <div id="chatOutput"></div>
@@ -534,11 +537,11 @@ else
     </div>
 </body>
 <style>
-    body{
-        margin: 0;
-        padding: 0;
-        overflow-x: hidden;
-        background-color: rgb(226, 226, 226);
+body{
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  background-color: rgb(226, 226, 226);
 }
 .NavigationBar
 {
@@ -568,7 +571,13 @@ color: #4caf50;
 font-weight: bold;
 
 }
-
+#userNametwo
+{
+  background:transparent;
+  border:none;
+  padding:100px;
+  color:darkgreen;
+}
 .Signout
 {
   background:transparent;
@@ -587,7 +596,7 @@ font-weight: bold;
 
 a:hover
 {
-    color: purple;
+    color: #4caf50;
 }
 
 .image1
@@ -758,9 +767,11 @@ margin-right:10px;
     text-decoration: none;
     cursor: pointer;
 }
+h1{
+  color:#4caf50;
+}
 
 
-  h1,
   h2,
   h3,
   h4,
@@ -848,17 +859,17 @@ margin-right:10px;
     transition: 0.5s all;
   }
   .add-property {
-    display: none; 
-    position: fixed; 
-    z-index: 1; 
-    padding-top: 50px; 
+  display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    padding-top: 10px; /* Location of the box */
     left: 0;
     top: 0;
-    width: 100%; 
-    height: 100%; 
-    overflow: auto; 
-    background-color: rgb(0,0,0); 
-    background-color: rgba(0,0,0,0.4); 
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
 }
 .modal-property {
   margin: auto;
@@ -906,7 +917,6 @@ margin-right:10px;
     margin: 0 auto 0 auto;
     background: #fff;
     padding: 30px 64px;
-    box-shadow: 0px 0px 5px 5px rgb(182, 182, 182);
   }
 
   .propertyAdd h2 {
@@ -1103,7 +1113,7 @@ margin-right:10px;
   margin: auto;
   padding: 20px;
   border: 1px solid #888;
-  width: 80%;
+  width: 50%;
 }
 
 /* The Close Button */
@@ -1210,9 +1220,13 @@ margin-right:10px;
 
 .userSettings {
     margin-bottom: 20px;
+    margin-left:300px;
+    position:absolute;
+    left:-1000;
 }
 
 .chat {
+    margin-left:300px;
     max-width: 400px;
     display: flex;
     flex-direction: row;
@@ -1241,6 +1255,7 @@ margin-right:10px;
     width: 25%;
 }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <script>
         var houses = <?php echo $payload ?>;
         var isLogedIn = <?php echo $isLogedIn ?>;
@@ -1379,7 +1394,7 @@ margin-right:10px;
                     }
                     
                     if(isLogedIn == 0){
-                      var modallog = document.getElementById('myModallogin');
+                    var modallog = document.getElementById('myModallogin');
                     var btnlog = document.getElementById("login");
                     var spanlog = document.getElementsByClassName("closelogin")[0];
                     btnlog.onclick = function() {
@@ -1409,6 +1424,7 @@ margin-right:10px;
                     }
                     
                     var modalMsg= document.getElementById('myModalmsg');
+                    if(isLogedIn == 1){
                     var btnMsg = document.getElementById("messages");
                     var spanMsg = document.getElementsByClassName("closemsg")[0];
                     btnMsg.onclick = function() {
@@ -1421,8 +1437,8 @@ margin-right:10px;
                       if (event.target == modalMsg) {
                         modalMsg.style.display = "none";
                       }
+                      }
                     }
-
 
 
 
@@ -1439,7 +1455,7 @@ margin-right:10px;
                         }
                       }
                     }
-
+                     
 
 
 
@@ -1452,20 +1468,21 @@ margin-right:10px;
                     $(document).ready(function() {
                     var chatInterval = 250; //refresh interval in ms
                     var $userName = $("#userName");
+                    var $userNametwo = $("#userNametwo");
                     var $chatOutput = $("#chatOutput");
                     var $chatInput = $("#chatInput");
                     var $chatSend = $("#chatSend");
 
                     function sendMessage() {
                         var userNameString = $userName.val();
+                        var userNameStringtwo = $userNametwo.val();
                         var chatInputString = $chatInput.val();
 
                         $.get("./write.php", {
                             username: userNameString,
+                            usernametwo: userNameStringtwo,
                             text: chatInputString
                         });
-
-                        $userName.val("");
                         retrieveMessages();
                     }
 

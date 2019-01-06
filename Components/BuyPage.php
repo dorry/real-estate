@@ -14,9 +14,9 @@ function redirectto()
 </script>
 <?php
 session_start();
-$isLogedIn=0;
-$username = $passwordErr = $emailErr = $nameErr = $email = $password = $mobileno = $country = $city = $region = $address = $size = $price ="";
 
+$username = $passwordErr = $emailErr = $nameErr = $email = $password = $mobileno = $country = $city = $region = $address = $size = $price ="";
+$isLogedIn=0;
 class property{
   public $price;
   public $size;
@@ -197,7 +197,7 @@ mysqli_close($con);
         }
         else
         {
-          echo "<li><a href = '#Login' id='login'>Login /</a></li>";
+          echo "<li><a href = '#Login' id='login'>Login / </a></li>";
           echo "<li><a href = '#Signup' id='Signup'> Signup</a></li>";
         }
         ?>
@@ -511,12 +511,12 @@ mysqli_close($con);
     <span class="closemsg">&times;</span>
       <div class="container">
         <header class="header">
-            <h1>rChat</h1>
+            <h1>Messages</h1>
         </header>
         <main>
             <div class="userSettings">
                 <label for="userName">Username:</label>
-                <input id="userName" type="text" placeholder="Username" maxlength="32" value="Somebody">
+                <input id="userName" type="text" placeholder="Username" maxlength="32" value="<?php echo $_SESSION['username']; ?>">
             </div>
             <div class="chat">
                 <div id="chatOutput"></div>
@@ -650,8 +650,10 @@ font-weight: bold;
     cursor: pointer;
 }
 
+h1{
+  color:#4caf50;
+}
 
-  h1,
   h2,
   h3,
   h4,
@@ -787,7 +789,7 @@ margin-right:10px;
 }
 a:hover
 {
-    color: purple;
+    color: #4caf50;
 }
 .modal {
     display: none; /* Hidden by default */
@@ -1023,6 +1025,57 @@ a:hover
 
 
 
+  .modalmsg {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  padding-top: 100px; /* Location of the box */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content */
+.modal-contentmsg {
+  background-color: #fefefe;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 50%;
+}
+
+/* The Close Button */
+.closemsg {
+  color: #aaaaaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.closemsg:hover,
+.closemsg:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1099,9 +1152,13 @@ a:hover
 
 .userSettings {
     margin-bottom: 20px;
+    margin-left:300px;
+    position:absolute;
+    left:-1000;
 }
 
 .chat {
+    margin-left:300px;
     max-width: 400px;
     display: flex;
     flex-direction: row;
@@ -1130,6 +1187,7 @@ a:hover
     width: 25%;
 }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <script>
       var houses = <?php echo $payload ?>;
       var isLogedIn = <?php echo $isLogedIn ?>;
@@ -1347,8 +1405,8 @@ a:hover
 
 
 
-
                     var modalMsg= document.getElementById('myModalmsg');
+                    if(isLogedIn == 1){
                     var btnMsg = document.getElementById("messages");
                     var spanMsg = document.getElementsByClassName("closemsg")[0];
                     btnMsg.onclick = function() {
@@ -1361,8 +1419,8 @@ a:hover
                       if (event.target == modalMsg) {
                         modalMsg.style.display = "none";
                       }
+                      }
                     }
-
 
 
 
