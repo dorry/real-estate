@@ -9,8 +9,8 @@ if ($db->connect_errno) {
 }
 
 //get user-input from url
-$username=substr($_GET["username"], 0, 32);
-$usernametwo=substr($_GET["usernametwo"], 0, 32);
+$username=$_GET["username"];
+$usernametwo=$_GET["usernametwo"];
 $text=substr($_GET["text"], 0, 128);
 //escaping is extremely important to avoid injections!
 $nameEscaped = htmlentities(mysqli_real_escape_string($db,$username));
@@ -18,7 +18,8 @@ $nameEscapedtwo = htmlentities(mysqli_real_escape_string($db,$usernametwo)); //e
 $textEscaped = htmlentities(mysqli_real_escape_string($db, $text)); //escape text and limit it to 128 chars
 
 //create query
-$query="INSERT INTO chat (username, usernametwo, text) VALUES ('$nameEscaped', '$nameEscapedtwo', '$textEscaped')";
+$query="INSERT INTO chat (senderId, receiverId, text) VALUES ($nameEscaped, $nameEscapedtwo, '$textEscaped')";
+echo $query;
 //execute query
 if ($db->real_query($query)) {
     //If the query was successful

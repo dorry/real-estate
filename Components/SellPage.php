@@ -4,64 +4,83 @@
   />
   <link rel="stylesheet" href="css/main.css" type="text/css" media="screen" />
 <?php
+session_start();
+$isLogedIn = 0;
+$countryErr = $cityErr = $imageErr = $addressErr = $sizeErr = $priceErr = $descriptionErr = $addressError = "";
 if (isset($_POST["submit"]))
 {
-    switch($_POST['submit'])
+  switch($_POST['submit'])
+  {
+    case 'Add Property':
+    if ( !preg_match ("/^[a-zA-Z\s]+$/",$_POST["city"]))
     {
-      case 'Add Property':
-                $conn = mysqli_connect('localhost','root','','real_estate');
-                $country = $_POST['country'];
-                $country = mysqli_real_escape_string($conn,$country);
-                $city = $_POST["city"];
-                $city = mysqli_real_escape_string($conn,$city);
-                $imgFile = addslashes(file_get_contents($_FILES["insertImage"]["tmp_name"]));
-                $address = $_POST['address'];
-                $address = mysqli_real_escape_string($conn,$address);
-                $size = $_POST['size'];
-                $size = mysqli_real_escape_string($conn,$size);
-                $price = $_POST['price'];
-                $price = mysqli_real_escape_string($conn,$price);
-                $description = $_POST["description"];
-                $description = mysqli_real_escape_string($conn,$description);
-                $addressArr = explode(",",$address);
-                $buildingNum = $addressArr[0];
-                $buildingNum = mysqli_real_escape_string($conn,$buildingNum);    
-                $street = $addressArr[1];
-                $street = mysqli_real_escape_string($conn , $street);
-                $district = $addressArr[2];
-                $district = mysqli_real_escape_string($conn , $district);
-                $floor = $addressArr[3];
-                $floor = mysqli_real_escape_string($conn , $floor);
-                $apartment = $addressArr[4];
-                $apartment = mysqli_real_escape_string($conn , $apartment);
-
-
-                $insertAddressQuery = "insert into address (country,city,district,buildingNumber,streetName,floor,apartmentNumber)
-                values ('$country','$city','$district','$buildingNum','$street','$floor','$apartment') ";
-
-                mysqli_query($conn,$insertAddressQuery);
-                $submitPropertyQuery = "insert into property (price , isAvailable , locationId , size , description , photo , addressId ) 
-                values ('$price', 1 , 1 , '$size' , '$description' , '$imgFile' , 
-                (select id from address where country = '$country' AND city = '$city' AND district = '$district' And
-                buildingNumber = '$buildingNum' AND streetName = '$street' AND  floor = '$floor' AND apartmentNumber = '$apartment'))";
-                mysqli_query($conn,$submitPropertyQuery);
-                mysqli_close($conn);
-                break;
+      $cityErr = "Only letters only allowed"; 
     }
+    else
+    {
+      $conn = mysqli_connect('localhost','root','','real_estate');
+      $country = $_POST['country'];
+      $country = mysqli_real_escape_string($conn,$country);
+      $city = $_POST["city"];
+      $city = mysqli_real_escape_string($conn,$city);
+      $imgFile = addslashes(file_get_contents($_FILES["insertImage"]["tmp_name"]));
+      $address = $_POST['address'];
+      $address = mysqli_real_escape_string($conn,$address);
+      $size = $_POST['size'];
+      $size = mysqli_real_escape_string($conn,$size);
+      $price = $_POST['price'];
+      $price = mysqli_real_escape_string($conn,$price);
+      $description = $_POST["description"];
+      $description = mysqli_real_escape_string($conn,$description);
+      $addressArr = explode(",",$address);
+      $buildingNum = $addressArr[0];
+      $buildingNum = mysqli_real_escape_string($conn,$buildingNum);    
+      $street = $addressArr[1];
+      $street = mysqli_real_escape_string($conn , $street);
+      $district = $addressArr[2];
+      $district = mysqli_real_escape_string($conn , $district);
+      $floor = $addressArr[3];
+      $floor = mysqli_real_escape_string($conn , $floor);
+      $apartment = $addressArr[4];
+      $apartment = mysqli_real_escape_string($conn , $apartment);
+
+
+      $insertAddressQuery = "insert into address (country,city,district,buildingNumber,streetName,floor,apartmentNumber)
+      values ('$country','$city','$district','$buildingNum','$street','$floor','$apartment') ";
+      $checkAddress = "Select * from address where country = '$country' AND city = '$city' AND district = '$district' And
+      buildingNumber = '$buildingNum' AND streetName = '$street' AND  floor = '$floor' AND apartmentNumber = '$apartment'  ";
+      $result = mysqli_query($conn,$checkAddress);
+      if(mysqli_num_rows($result)>0){
+      //do nothing
+      
+      }
+      else{
+      mysqli_query($conn,$insertAddressQuery);
+      }
+      $submitPropertyQuery = "insert into property (price , isAvailable , locationId , size , description,ownerId , photo , addressId) 
+      values ('$price', 1 , 1 , '$size' , '$description','" .$_SESSION['id'] ."', '$imgFile' , 
+      (select id from address where country = '$country' AND city = '$city' AND district = '$district' And
+      buildingNumber = '$buildingNum' AND streetName = '$street' AND  floor = '$floor' AND apartmentNumber = '$apartment'))";
+      mysqli_query($conn,$submitPropertyQuery);
+      mysqli_close($conn);
+      break;
+    }
+  }
 }
 ?>
 <body>
 <ul class = "NavigationBar">
-<li class="first-element-nav"><a class="nav-element" href="#Buy" onclick = "location.href = '../Components/BuyPage.php'">Buy</a></li>
+<li class="first-element-nav"><a href="HomePage.php"><i class="fa fa-home"></i></a>
+<li class="nav-element"><a class="nav-element" href="#Buy" onclick = "location.href = '../Components/BuyPage.php'">Buy</a></li>
 <div class="line-between"></div>
 <li  ><a class="nav-element" href="#Add property" id="add-property" >Sell</a></li>
 <div class="line-between"></div>
-<li  ><a class="nav-element" href="#MortGages">About Us</a></li>
+<li  ><a class="nav-element" href="#Aboutus" onclick = "location.href = '../Components/about_us.php'">About us</a></li>
 <div class="login-signup">
 
 
 <?php
-session_start();
+
 if(!empty($_SESSION))
 {
   echo "<div class='dropdown'>";
@@ -69,8 +88,8 @@ if(!empty($_SESSION))
   echo "<i class='fa fa-caret-down'></i>";
   echo "</button>";
   echo "<div class='dropdown-content' id='myDropdown'>";
-  echo "<a href='#'>Account</a>";
-  echo "<a href='#' id ='messages'>Messages</a>";
+  echo "<a href='ProfilePage.php'>Account</a>";
+  echo "<a href='Messages.php' id ='messages'>Messages</a>";
   echo "<form action = 'signout.php'>";
   echo "<li><button class= 'Signout' id='signout'> Signout</button></li>";
   echo "</form>";
@@ -94,7 +113,7 @@ else
                <div class="propertyAdd">
                  <h2>Add Your Property</h2>
                  <form method="post" enctype="multipart/form-data">   
-                  <h5>Country <span>* </span></h5>
+                  <h5>Country <span class = "validation">* </span></h5>
                   <p></p>
                   <select name="country">
                          <option value="">Country...</option>
@@ -244,38 +263,39 @@ else
                          <option value="Zimbabwe">Zimbabwe</option>
                          </select>
                     <p></p>
-                   <h5>City <span>* </span></h5>
+                   <h5>City <span class = "validation">*  <?php echo $cityErr; ?></span></h5>
                    
                    <input type="text" name="city"
                      required="" 
                    />
-                   <h5>Address<span>* </span></h5>
+                   <h5>Address<span class = "validation">* </span></h5>
                    <input  type="text" placeholder="Apartment, suite, unit, building, floor, etc.."
                    required=""
                    name="address"
                    />
-                   <h5>Size<span>* </span></h5>
-
+                   <h5>Size<span class = "validation">* <?php echo $sizeErr; ?> </span></h5>
+                   <p></p>
                    <input
-                     type="text"
+                   style = "margin-top:5px;margin-bottom:15px;"
+                     type="number"
                      name="size"
                      required=""
                      
                    />
-                   <h5>Price<span>* </span></h5>
-
+                   <h5>Price<span class = "validation">* <?php echo $priceErr; ?> </span></h5>
                    <input
-                   type="text"
+                   style = "margin-top:5px;margin-bottom:15px;"
+                   type="number"
                    name="price"
                    required=""
-                   
-                 />
-                 <h5>Description<span>* </span></h5>
+                    />
+                 <h5>Description<span class = "validation">* <?php echo $descriptionErr; ?></span></h5>
                   <input  type="text"
                     required=""
                     name="description"
+                    maxlength="200"
                   />
-                  <h5>Upload image<span>* </span></h5>
+                  <h5>Upload image<span class = "validation">* </span></h5>
                   <input required="" type = "file" name="insertImage" id ="insertImage" class="imageBtn" >
 
                  <input name="submit"type="submit" id="submit" value="Add Property" />
@@ -286,28 +306,9 @@ else
    </div>
  </div>
 </body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>  
 <script>
-if(isLogedIn == 0)
-{
-    var modallog = document.getElementById('myModallogin');
-    var btnlog = document.getElementById("login");
-    var spanlog = document.getElementsByClassName("closelogin")[0];
-    btnlog.onclick = function()
-    {
-        modallog.style.display = "block";
-    }
-    spanlog.onclick = function()
-    {
-        modallog.style.display = "none";
-    }
-    window.onclick = function(event)
-    {
-        if (event.target == modallog)
-        {
-            modallog.style.display = "none";
-        }
-    }
-}
+var isLogedIn = <?php echo $isLogedIn ?>;
 function accountDrop()
 {
   document.getElementById("myDropdown").classList.toggle("show");
@@ -323,6 +324,38 @@ window.onclick = function(e)
     }
   }
 }
+function validateImage()
+{
+  $(document).ready(function()
+  {
+    $('#submit').click(function()
+    {
+      var image_name = $('#insertImage').val();
+      var extension = $('#insertImage').val().split('.').pop().toLowerCase();
+      if(jQuery.inArray(extension, ['gif','png','jpg','jpeg']) == -1)
+      {  
+        alert('Invalid Image File');
+        $('#insertImage').val('');
+       
+        return false;
+      }  
+    });  
+  });  
+}
+validateImage();
+
+
+function logedInPrivelages(){
+document.getElementById("add-property").onclick = ()=>{
+ 
+if(isLogedIn == 1){
+  location.href = "../Components/SellPage.php";
+}
+else{
+  alert("Please Login firstly");
+}
+}}
+logedInPrivelages();
 </script>
 <style>
 .line-between{
@@ -333,9 +366,11 @@ margin-right:10px;
 .nav-element{
     color :white;
 }
-.first-element-nav{
-    padding-left:8vw;
-}     
+.first-element-nav
+{
+  padding-left:8vw;
+  padding-right:1vw;
+}   
 .login-signup{
     position: absolute;
     right:6vw;
@@ -348,6 +383,7 @@ body
   padding: 0;
   overflow-x: hidden;
   background-color: rgb(226, 226, 226);
+  background:white;
 }
 .NavigationBar
 {
@@ -416,7 +452,10 @@ h1,h2,h3,h4,h5,h6
     background: #fff;
     padding: 30px 64px;
 }
-
+.imageBtn{
+  margin:20px;
+  margin-left:0px
+}
 .propertyAdd h2
 {
     color: #4caf50;
@@ -548,5 +587,10 @@ h1,h2,h3,h4,h5,h6
   font-size: 16px;
   cursor:pointer;
 }
+.validation
+{
+  color:red;
+}
+
 </style>
 </html>

@@ -16,119 +16,111 @@ function redirectto()
 session_start();
 $isLogedIn=0;
 $username = $imgFile = $passwordErr = $description = $emailErr = $nameErr = $email = $password = $mobileno = $country = $city = $region = $address = $size = $price ="";
-
-class property{
+$isAdmin = 0;
+class property
+{
   public $price;
   public $size;
-  public $address;
+  public $description;
   public $img;
- 
-  public function __construct($price,$size,$address,$img){
-      $this->price = $price;
-      $this->size = $size;
-      $this->address = $address;
-      $this->img = $img;
-    
-      
-  }
+  public $id;
+  public $sold;
 
+  public function __construct($price,$size,$description,$img,$id,$sold)
+  {
+    $this->price = $price;
+    $this->size = $size;
+    $this->description = $description;
+    $this->img = $img;
+    $this->id = $id;
+    $this->sold = $sold;  
+  }
 }
-$conn = mysqli_connect('localhost','root','','real_estate');
-$selectQuery="select * from property";
-$result = mysqli_query($conn,$selectQuery);
-$allProperties = array();
-if(mysqli_num_rows($result)>0){
-    while($row = mysqli_fetch_assoc($result)){
-        array_push($allProperties,new property($row['price'],$row['size'],$row['description'],base64_encode($row['photo'])));
-    }}
-    else{
-        echo "0 results";
+  $conn = mysqli_connect('localhost','root','','real_estate');
+  if(!$conn)
+  {
+    die("connection failed:".mysqli_connect_error());
+  }
+  $selectQuery="select * from property";
+  $result = mysqli_query($conn,$selectQuery);
+  $allProperties = array();
+  if(mysqli_num_rows($result)>0)
+  {
+    while($row = mysqli_fetch_assoc($result))
+    {
+      array_push($allProperties,new property($row['price'],$row['size'],$row['description'],base64_encode($row['photo']), $row['id'],$row['isAvailable']));
+    }
+  }
+    else
+    {
+      echo "0 results";
     }
 $payload = json_encode($allProperties);
-
-if (isset($_POST["submit"])) {
-  switch($_POST['submit']) {
-    case 'Create Account':
-$conn = mysqli_connect('localhost','root','','real_estate');
-
-  if (!preg_match("/^[a-zA-Z\d ]*$/",$_POST["username"])) {
-    $nameErr = "Only letters,numbers and white space allowed"; 
-    
-  }
-
-  else if (!filter_var($_POST["email"], FILTER_VALIDATE_EMAIL)) {
-    $emailErr = "Invalid email format"; 
-  }
-  else if ($_POST["password"]!= $_POST["confirmPassword"]) {
-    $passwordErr = "passwords not matching"; 
-  }
-  else{
-    
-    $username = $_POST["username"];
-    $username = mysqli_real_escape_string($conn,$username);
-    $email = $_POST["email"];
-    $email = mysqli_real_escape_string($conn,$email);      
-    $password = $_POST["password"];
-    $password = mysqli_real_escape_string($conn,$password);
-    if(!$conn){
-      die("connection failed:".mysqli_connect_error());
+if(!empty($_SESSION)){
+  $sessionUsername = $_SESSION['username'];
+  $isAdminQuery="select * from user where username = '$sessionUsername' ";
+  $resultIsAdmin = mysqli_query($conn,$isAdminQuery);
+  if(mysqli_num_rows($resultIsAdmin) == 1){
+    $rowAdmin = mysqli_fetch_assoc($resultIsAdmin);
+    if($rowAdmin['userTypeId'] == 1){
+      $isAdmin = 1;
     }
-    $insertQuery = "Insert into user (username,email,password,userTypeid)
-    values ('$username','$email','$password',1)";
-    mysqli_query($conn, $insertQuery);
-    mysqli_close($conn);
-    echo "gi";
   }
-  mysqli_close($conn);
-  break;
+}
+mysqli_close($conn);
 
-case 'Login': 
+if (isset($_POST["submit"]))
+{
   $connlogin = mysqli_connect('localhost','root','','real_estate');
   $usernamelogin = $_POST['usernameloginf'];
   $passwordlogin = $_POST['passwordloginf'];
-  $querylogin="SELECT * FROM user WHERE username='$usernamelogin' AND password='$passwordlogin'";
+  $password_login_hash = md5($passwordlogin);
+
+  $querylogin="SELECT * FROM user WHERE username='$usernamelogin' AND password='$password_login_hash'";
   $resultlogin = mysqli_query($connlogin,$querylogin);
   $count=mysqli_num_rows($resultlogin);
   if($count==1)
   {
     $rowlogin = mysqli_fetch_assoc($resultlogin);
-    if ($rowlogin['username'] == $usernamelogin && $rowlogin['password'] == $passwordlogin)
-    {
-        $_SESSION['username']= $usernamelogin;
-        $usernamehtml = $_SESSION['username'];
-        header("Location:Homepage.php");
-        return true;
+    if ($rowlogin['username'] == $usernamelogin && $rowlogin['password'] == $password_login_hash)
+    { 
+      $_SESSION['username']= $usernamelogin;
+      $_SESSION['id'] = $rowlogin['id'];
+      $usernamehtml = $_SESSION['username'];
+      header("Location:Homepage.php");
+      return true;
     }
     else
     {
-        echo "<script>";
-        echo "redirectto();";
-        echo "alert('Invalid Username or Password');";
-        echo "</script>";
-        return false;
-    }
-  }
-  else
-  {
       echo "<script>";
       echo "redirectto();";
       echo "alert('Invalid Username or Password');";
       echo "</script>";
       return false;
+    }
+  }
+  else
+  {
+    echo "<script>";
+    echo "redirectto();";
+    echo "alert('Invalid Username or Password');";
+    echo "</script>";
+    return false;
   }
   mysqli_close($connlogin);
-  break;
+
  }
-}
+
 
 ?>
 <body>
 <ul class = "NavigationBar">
-<li class="first-element-nav"><a class="nav-element" href="#Buy" onclick = "location.href = '../Components/BuyPage.php'">Buy</a></li>
+<li class="first-element-nav"><a href="HomePage.php"><i class="fa fa-home"></i></a>
+<li class="nav-element"><a class="nav-element" href="#Buy" onclick = "location.href = '../Components/BuyPage.php'">Buy</a></li>
 <div class="line-between"></div>
-<li  ><a class="nav-element" href="#Add property" id="add-property" onclick = "location.href = '../Components/SellPage.php'" >Sell</a></li>
+<li ><a class="nav-element" href="#Add property" id="add-property"  >Sell</a></li>
 <div class="line-between"></div>
-<li  ><a class="nav-element" href="#MortGages">About Us</a></li>
+<li  ><a class="nav-element" href="#Aboutus" onclick = "location.href = '../Components/about_us.php'">About us</a></li>
 
 
 
@@ -141,8 +133,8 @@ if(!empty($_SESSION))
   echo "<i class='fa fa-caret-down'></i>";
   echo "</button>";
   echo "<div class='dropdown-content' id='myDropdown'>";
-  echo "<a href='#'>Account</a>";
-  echo "<a href='#' id ='messages'>Messages</a>";
+  echo "<a href='ProfilePage.php'>Account</a>";
+  echo "<a href='Messages.php' id ='messages'>Messages</a>";
   echo "<form action = 'signout.php'>";
   echo "<li><button class= 'Signout' id='signout'> Signout</button></li>";
   echo "</form>";
@@ -154,7 +146,7 @@ if(!empty($_SESSION))
 else
 {
   echo "<li><a href = '#Login' id='login'>Login /</a></li>";
-  echo "<li><a href = '#Signup' id='Signup'> Signup</a></li>";
+  echo "<li><a href = 'SignupPage.php' id='Signup'> Signup</a></li>";
 }
 ?>
 </div>
@@ -165,20 +157,13 @@ else
  <img src ="../assets/realestate2.jpg" alt="realstateimg" id="img1"> 
  <div class = "search-menu">
  <div class = "buttonmargin">
-<a href ="#Buy" class="buttons" onclick = "location.href = '../Components/BuyPage.php'">BUY</a>
+
 <div class="line-between"></div>
-<a href ="#rent" class="buttons" onclick = "location.href = '../Components/SellPage.php'">RENT</a>
-<div class="line-between"></div>
-<a href ="#sold" class="buttons">SOLD</a>
+
 <br>
 </div>
 
-<form class="form-data">
 
-<input type ="text" placeholder="Enter Here" id="form1" >
-<input type="button" id = "search"> 
-
-</form>
 
 </div>
 </div>
@@ -194,6 +179,14 @@ else
 
             <h2>Register your acccount</h2>
             <form method="post">
+              <h5>Full Name <span>* <?php echo $nameErr; ?></span></h5>
+              
+              <input
+                type="text"
+                name="fullname"
+                required=""
+                
+              />
               <h5>Username <span>* <?php echo $nameErr; ?></span></h5>
               
               <input
@@ -291,39 +284,39 @@ else
     </div>
 </body>
 <style>
-body{
+body
+{
   margin: 0;
   padding: 0;
   overflow-x: hidden;
-  background-color: rgb(226, 226, 226);
+  background-color: white
 }
 .NavigationBar
 {
-background-color: #101010;
-border: #707070 1px;
-display: flex;
-font-size: 18px;
-font-family: Arial;
-text-align:left;
-padding: 10px;
-padding-right: 0px;
-padding-left: 0px;
-list-style-type: none;
-width: 100%;
-margin-block-end: 0px;
-
+  background-color: #101010;
+  border: #707070 1px;
+  display: flex;
+  font-size: 18px;
+  font-family: Arial;
+  text-align:left;
+  padding: 10px;
+  padding-right: 0px;
+  padding-left: 0px;
+  list-style-type: none;
+  width: 100%;
+  margin-block-end: 0px;
 }
+
 a
 {
-color: white;
-text-decoration: none;
+  color: white;
+  text-decoration: none;
 }
 
 #login
 {
-color: #4caf50;
-font-weight: bold;
-
+  color: #4caf50;
+  font-weight: bold;
 }
 #userNametwo
 {
@@ -344,51 +337,52 @@ font-weight: bold;
 }
 #signup
 {
-color: #4caf50;
-font-weight: bold;    
+  color: #4caf50;
+  font-weight: bold;    
 }
 
 a:hover
 {
-    color: #4caf50;
+  color: #4caf50;
 }
 
 .image1
 {
-position: relative;
-width:100%;
-height:350px ;
-text-align: center;
+  position: relative;
+  width:100%;
+  height:350px ;
+  text-align: center;
 }
 #img1
 {
-    width: 100%;
-    height:100%;
+  width: 100%;
+  height:100%;
 }
 
-.search-menu{
-    margin:auto;
-    position: absolute;
-    text-align: center;
-    top: 250px;
-    left:35%;
-   
+.search-menu
+{
+  margin:auto;
+  position: absolute;
+  text-align: center;
+  top: 250px;
+  left:35%;
 }
-.form-data{
-    display: flex;
-    float:left;
+.form-data
+{
+  display: flex;
+  float:left;
 }
 .buttons
 {
-    color:white;
-    font-family: Arial;
-    font-size: 30px;
-    padding: 10px 10px;
-    text-decoration: none;
-    background-color:rgba(0, 0, 0, 0.5);
-    float:left;
-    margin-bottom:5px;
-    align:right;
+  color:white;
+  font-family: Arial;
+  font-size: 30px;
+  padding: 10px 10px;
+  text-decoration: none;
+  background-color:rgba(0, 0, 0, 0.5);
+  float:left;
+  margin-bottom:5px;
+  align:right;
 }
 
 .buttonmargin
@@ -399,109 +393,108 @@ text-align: center;
 }
 #form1
 {
-    width: 370px;
-    height: 35px;
-
+  width: 370px;
+  height: 35px;
 }
 #search
 {
-    width:50px;
-    height:35px;
-    padding-top:25px;
-    background-color: green;
+  width:50px;
+  height:35px;
+  padding-top:25px;
+  background-color: green;
 }
     
 #container2
 {
-    background-color: rgb(226, 226, 226);
-    display: flex;
-    padding-top: 30px;
-    justify-content: space-around;
-    flex-wrap: wrap;
-    overflow: auto;
+  background-color: white;
+  display: flex;
+  padding-top: 30px;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  overflow: auto;
 }
 .pic1
 {
-    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-    width: 300px;
-    height: 500px;
-    border: 1px gray;
-   
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  width: 300px;
+  height: 500px;
+  border: 1px gray;
 }
 #home1
 {
-    width: 100%;
-    height: 40%;
+  width: 100%;
+  height: 40%;
 }
 
 .pic2
 {
-    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-    width: 300px;
-    height: 500px;
-    border: 1px  gray;
-   
-
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  width: 300px;
+  height: 500px;
+  border: 1px  gray;
 }
 #home2
 {
-    width: 100%;
-    height: 40%;
+  width: 100%;
+  height: 40%;
 }
 .pic3
 {
-    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-    width: 300px;
-    height: 500px;
-    border: 1px gray;
-    
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  width: 300px;
+  height: 500px;
+  border: 1px gray;
 }
 
 #home3
 {
-    width: 100%;
-    height: 40%;
+  width: 100%;
+  height: 40%;
 }
-.square {
-    border-style: solid ;
-    border-color: grey;
-    border-width: 1px;
-    display: inline-block;
-    height: 150px;
-    width: 300px;
-    background-color: whitesmoke ;
-  }
-
-
-.line-between{
-border-right:1px solid white;
-margin-left:10px;
-margin-right:10px;
+.square
+{
+  border-style: solid;
+  border-color: grey;
+  border-width: 1px;
+  display: inline-block;
+  height: 150px;
+  width: 300px;
+  background-color: whitesmoke;
 }
-.nav-element{
-    color :white;
+.line-between
+{
+  border-right:1px solid white;
+  margin-left:10px;
+  margin-right:10px;
 }
-.first-element-nav{
-    padding-left:8vw;
+.nav-element
+{
+  color :white;
+}
+.first-element-nav
+{
+  padding-left:8vw;
+  padding-right:1vw;
 }     
-.login-signup{
-    position: absolute;
-    right:6vw;
-  
-    display: flex;
+.login-signup
+{
+  position: absolute;
+  right:6vw;
+  display: flex;
 }
-.modal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 1; /* Sit on top */
-    padding-top: 10px; /* Location of the box */
-    left: 0;
-    top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgb(0,0,0); /* Fallback color */
-    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+.modal
+{
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  padding-top: 10px; /* Location of the box */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
 }
 .modal-content {
    
@@ -547,101 +540,8 @@ h1{
     padding: 60px 0;
   }
 
-  .main {
-    width: 50%;
-    margin: 0 auto 0 auto;
-    background: #fff;
-    padding: 30px 64px;
-   
-  }
+  
 
-  .main h2 {
-    color: #4caf50;
-    font-size: 26px;
-    text-align: center;
-    margin-bottom: 30px;
-    font-weight: 500;
-  }
-
-  .main form input[type="text"],
-  .main form input[type="password"] {
-    width: 94%;
-    padding: 10px;
-    font-size: 14px;
-    border: none;
-    border-bottom: 2px solid #e6e6e6;
-    outline: none;
-    color: #d8d5d5;
-    margin-bottom: 20px;
-  }
-  .main h5 {
-    font-family: "Lato", sans-serif !important;
-    color: #4caf50;
-    margin-bottom: 8px;
-    font-size: 15px;
-  }
-  .main form input[type="text"]:hover,
-  .main form input[type="password"]:hover {
-    border-bottom: 2px solid #b384fb;
-    color: #000;
-    transition: 0.5s all;
-  }
-  .main form input[type="text"]:focus,
-  .main form input[type="password"]:focus {
-    border-bottom: 2px solid #b384fb;
-    color: #000;
-    transition: 0.5s all;
-  }
-
-  .main form input[type="submit"] {
-    background: #4caf50;
-    color: #ffffff;
-    text-align: center;
-    padding: 14px 0;
-    border: none;
-    border-bottom: 5px solid rgb(61, 151, 64);
-    font-size: 17px;
-    outline: none;
-    width: 100%;
-    cursor: pointer;
-    margin-bottom: 0px;
-  }
-  .main form input[type="submit"]:hover {
-    background: rgb(206, 206, 206);
-    color: #000;
-    border-bottom: 5px solid rgb(168, 168, 168);
-    transition: 0.5s all;
-  }
-  .add-property {
-  display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 1; /* Sit on top */
-    padding-top: 10px; /* Location of the box */
-    left: 0;
-    top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgb(0,0,0); /* Fallback color */
-    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-}
-.modal-property {
-  margin: auto;
-    width: 50%;
-}
-.closeProperty {
-    color: #aaaaaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-}
-
-.closeProperty:hover,
-.closeProperty:focus {
-    color: #000;
-    text-decoration: none;
-    cursor: pointer;
-}
 
 
   h1,
@@ -662,74 +562,7 @@ h1{
     margin: 0;
   }
   
-  .propertyFill {
-    padding: 60px 0;
-  }
-
-  .propertyAdd {
-    width: 50%;
-    margin: 0 auto 0 auto;
-    background: #fff;
-    padding: 30px 64px;
-  }
-
-  .propertyAdd h2 {
-    color: #4caf50;
-    font-size: 26px;
-    text-align: center;
-    margin-bottom: 30px;
-    font-weight: 500;
-  }
-
-  .propertyAdd form input[type="text"],
-  .propertyAdd form input[type="password"] {
-    width: 94%;
-    padding: 10px;
-    font-size: 14px;
-    border: none;
-    border-bottom: 2px solid #e6e6e6;
-    outline: none;
-    color: #d8d5d5;
-    margin-bottom: 20px;
-  }
-  .propertyAdd h5 {
-    font-family: "Lato", sans-serif !important;
-    color: #4caf50;
-    margin-bottom: 8px;
-    font-size: 15px;
-  }
-  .propertyAdd form input[type="text"]:hover,
-  .propertyAdd form input[type="password"]:hover {
-    border-bottom: 2px solid #b384fb;
-    color: #000;
-    transition: 0.5s all;
-  }
-  .propertyAdd form input[type="text"]:focus,
-  .propertyAdd form input[type="password"]:focus {
-    border-bottom: 2px solid #b384fb;
-    color: #000;
-    transition: 0.5s all;
-  }
-
-  .propertyAdd form input[type="submit"] {
-    background: #4caf50;
-    color: #ffffff;
-    text-align: center;
-    padding: 14px 0;
-    border: none;
-    border-bottom: 5px solid rgb(61, 151, 64);
-    font-size: 17px;
-    outline: none;
-    width: 100%;
-    cursor: pointer;
-    margin-bottom: 0px;
-  }
-  .propertyAdd form input[type="submit"]:hover {
-    background: rgb(206, 206, 206);
-    color: #000;
-    border-bottom: 5px solid rgb(168, 168, 168);
-    transition: 0.5s all;
-  }
+  
   .modallogin {
     display: none; /* Hidden by default */
     position: fixed; /* Stay in place */
@@ -962,10 +795,7 @@ h1{
 
 
 
-.imageBtn{
-  margin:20px;
-  margin-left:0px
-}
+
 
 
 .userSettings {
@@ -1004,237 +834,158 @@ h1{
 .chat #chatSend {
     width: 25%;
 }
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <script>
-        var houses = <?php echo $payload ?>;
-        var isLogedIn = <?php echo $isLogedIn ?>;
-        alert(isLogedIn);
-        // var houses = [{houseName:"Villa 1", 
-        //               price:200000, 
-        //               address:"20 Omar Ibn Elkhatab Street, Sheraton Helioplis",
-        //               img: "../assets/pic2.jpg"
-        //               },
-        //               {houseName:"Villa 2", 
-        //               price:300000, 
-        //               address:"20 Omar Ibn Elkhatab Street, Sheraton Helioplis",
-        //               img: "../assets/pic3.jpg"},
-        //               {houseName:"Villa 3", 
-        //               price:400000, 
-        //               address:"20 Omar Ibn Elkhatab Street, Sheraton Helioplis",
-        //               img: "../assets/pic1.jpg"}];
-                  
-                  function validateImage(){
-                    $(document).ready(function(){ 
-                    
-                      $('#submit').click(function(){  
-                          var image_name = $('#insertImage').val();  
-                         
-                         
-                                var extension = $('#insertImage').val().split('.').pop().toLowerCase();  
-                                if(jQuery.inArray(extension, ['gif','png','jpg','jpeg']) == -1)  
-                                {  
-                                    alert('Invalid Image File');  
-                                    $('#insertImage').val('');  
-                                    return false;  
-                                  
-                          }  
-                      });  
-            });  
-                  }
-                  function render(houseobj){
-                      
-                      Object.keys(houseobj).forEach((x)=>{
-                                                 
-                          var containerAll = document.getElementById("container2");
-                          var price = document.createTextNode(houseobj[x].price+"$");
-                          var priceContainer = document.createElement("p");
-                          var img =document.createElement("img");
-                          var adContainer = document.createElement("div");
-                          var address = document.createTextNode(houseobj[x].address);
-                          var addressContainer = document.createElement("p");
-                          // var button1 =  document.createElement("button");
-                          // button1.innerHTML = "Show more";
-                          // button1.onclick = function()
-                          // {
-                          //   Popup(x, houseobj); 
-                          // }
-  
-                          priceContainer.appendChild(price);
-                          addressContainer.appendChild(address);
-                          adContainer.onclick = function()
-                          {
-                            Popup(x, houseobj); 
-                          }
-                          adContainer.appendChild(img);                         
-                          adContainer.appendChild(priceContainer);
-                          adContainer.appendChild(addressContainer);
-                          //adContainer.appendChild(button1);
-                          containerAll.appendChild(adContainer);
-                          
-                          // button1.style.marginLeft = "210px";
-                          // button1.style.backgroundColor =  "#4CAF50";
-                          // button1.style.border = "0";
-                          // button1.style.borderRadius = "2px";
-                          // button1.style.color = "white";
-                          // button1.style.transitionDuration = "0.4s";
-                          // button1.style.padding = "5px 5px";
-
-                          img.src= "data:image/jpeg;base64," +houseobj[x].img;
-                          img.style.width= "300px";
-                          img.style.height= "200px";
-                          priceContainer.style.fontWeight= "bold";
-                          priceContainer.style.paddingLeft= "10px";
-                          addressContainer.style.paddingLeft="10px";
-                          adContainer.style.margin="20px";
-                          adContainer.style.marginBottom="70px";
-                          adContainer.style.width="300px";
-                          adContainer.style.height="335px";
-                          adContainer.style.backgroundColor="white";
-                          adContainer.style.border="1px solid lightgrey";
-                      });
-                  }
-                  function Popup(x, houseobj)
-                  {
-                    var myDialog = document.createElement("dialog");
-                    var button = document.createElement("button");
-                    button.innerHTML = "Close";
-                    var price = document.createTextNode(houseobj[x].price+"$");
-                    var priceContainer = document.createElement("p");
-                    var img =document.createElement("img");
-                    var adContainer = document.createElement("div");
-                    var address = document.createTextNode(houseobj[x].address);
-                    var addressContainer = document.createElement("p");
-                    var pricetext = document.createTextNode("Price: ");
-                    var addresstext = document.createTextNode("Address: ");
-                    button.onclick = function()
-                    {
-                        myDialog.style.display = "none";
-                    }
-                    window.onclick = function(event)
-                    {
-                        if (event.target == myDialog)
-                        {
-                            myDialog.style.display = "none";
-                        }
-                    }
-
-                     img.src= houseobj[x].img;
-                    img.style.marginLeft = "7vw";
-                    myDialog.style.borderWidth = "1px";
-                    myDialog.style.borderColor = "green";
-                    myDialog.style.height = "27vw";
-                    myDialog.style.width = "36vw";
-                    button.style.marginLeft = "32vw";
-                    button.style.marginBottom = "1vw";
-                    
+var houses = <?php echo $payload ?>;
+var isLogedIn = <?php echo $isLogedIn ?>;
+// var houses = [{houseName:"Villa 1", 
+//               price:200000, 
+//               address:"20 Omar Ibn Elkhatab Street, Sheraton Helioplis",
+//               img: "../assets/pic2.jpg"
+//               },
+//               {houseName:"Villa 2", 
+//               price:300000, 
+//               address:"20 Omar Ibn Elkhatab Street, Sheraton Helioplis",
+//               img: "../assets/pic3.jpg"},
+//               {houseName:"Villa 3", 
+//               price:400000, 
+//               address:"20 Omar Ibn Elkhatab Street, Sheraton Helioplis",
+//               img: "../assets/pic1.jpg"}];
 
 
-                    document.body.appendChild(myDialog);
-                    priceContainer.appendChild(pricetext);
-                    priceContainer.appendChild(price);
-                    addressContainer.appendChild(addresstext); 
-                    addressContainer.appendChild(address);   
-                    adContainer.appendChild(img);                         
-                    adContainer.appendChild(priceContainer);
-                    adContainer.appendChild(addressContainer);
+function render(houseobj)
+{
+  Object.keys(houseobj).forEach((x)=>
+  {
+    if(houseobj[x].description.length>25){
+        var houseDescription = houseobj[x].description.substring(0,25)+"..." ;
+      } 
+      else{
+        var houseDescription = houseobj[x].description;}
 
-                   
-                    myDialog.appendChild(button);
-                    myDialog.appendChild(adContainer);
-                    myDialog.showModal();
-                  }
-                  render(houses);
-                 
+    var price = document.createTextNode(houseobj[x].price+"$");
+    var priceContainer = document.createElement("p");
+    var img =document.createElement("img");
+    var adContainer = document.createElement("div");
+    var description = document.createTextNode(houseDescription);
+    var descriptionContainer = document.createElement("p");
+    var containerAll = document.getElementById("container2");
+    var remove = document.createElement("a");
+    var linkText = document.createTextNode("Remove");
+    var sold = document.createTextNode("SOLD");
+    var soldCont = document.createElement("span");
 
-                    var modal = document.getElementById('myModal');
-                    var span = document.getElementsByClassName("close")[0];
-                    if(isLogedIn ==0){
-                    var btn = document.getElementById("Signup");
-                    btn.onclick = function() {
-                        modal.style.display = "block";
-                    }}
-                    span.onclick = function() {
-                        modal.style.display = "none";
-                    }
-                    window.onclick = function(event) {
-                        if (event.target == modal) {
-                            modal.style.display = "none";
-                        }
-                    }
-                    
-                    if(isLogedIn == 0){
-                    var modallog = document.getElementById('myModallogin');
-                    var btnlog = document.getElementById("login");
-                    var spanlog = document.getElementsByClassName("closelogin")[0];
-                    btnlog.onclick = function() {
-                        modallog.style.display = "block";
-                    }
-                    spanlog.onclick = function() {
-                        modallog.style.display = "none";
-                    }
-                    window.onclick = function(event) {
-                        if (event.target == modallog) {
-                            modallog.style.display = "none";
-                        }
-                    }}
+    remove.href = "DeleteProperty.php?id="+houseobj[x].id;
 
-                    function accountDrop() {
-                      document.getElementById("myDropdown").classList.toggle("show");
-                    }
-
-                    // Close the dropdown if the user clicks outside of it
-                    window.onclick = function(e) {
-                      if (!e.target.matches('.dropbtn')) {
-                      var myDropdown = document.getElementById("myDropdown");
-                        if (myDropdown.classList.contains('show')) {
-                          myDropdown.classList.remove('show');
-                        }
-                      }
-                    }
-                     
-
-
+    remove.appendChild(linkText);
+    priceContainer.appendChild(price);
+    descriptionContainer.appendChild(description);
+    adContainer.appendChild(img);                         
+    adContainer.appendChild(priceContainer);
+    adContainer.appendChild(descriptionContainer);
+    soldCont.appendChild(sold);
+    if(houseobj[x].sold==0)
+    {
+      adContainer.appendChild(soldCont);
+    }
    
 
+    <?php if(!empty($_SESSION['username']) && $isAdmin ==1){echo "adContainer.appendChild(remove);";} ?>
+    containerAll.appendChild(adContainer);
+  
+    adContainer.onclick = function()
+    {
+      window.location.href = "PropertyPage.php?id="+houseobj[x].id;
+    }
 
 
 
 
-                //     $(document).ready(function() {
-                //     var chatInterval = 250; //refresh interval in ms
-                //     var $userName = $("#userName");
-                //     var $userNametwo = $("#userNametwo");
-                //     var $chatOutput = $("#chatOutput");
-                //     var $chatInput = $("#chatInput");
-                //     var $chatSend = $("#chatSend");
+    remove.title = "Remove";
+    remove.style.marginLeft = "160px";
+    remove.style.backgroundColor =  "#4CAF50";
+    remove.style.border = "0";
+    remove.style.borderRadius = "2px";
+    remove.style.color = "white";
+    remove.style.transitionDuration = "0.4s";
+    remove.style.padding = "5px 8px";
 
-                //     function sendMessage() {
-                //         var userNameString = $userName.val();
-                //         var userNameStringtwo = $userNametwo.val();
-                //         var chatInputString = $chatInput.val();
 
-                //         $.get("./write.php", {
-                //             username: userNameString,
-                //             usernametwo: userNameStringtwo,
-                //             text: chatInputString
-                //         });
-                //         retrieveMessages();
-                //     }
+    soldCont.style.paddingLeft = "10px";
+    soldCont.style.color = "red";
+    soldCont.style.fontWeight = "Bold";
 
-                //     function retrieveMessages() {
-                //         $.get("./read.php", function(data) {
-                //             $chatOutput.html(data); //Paste content into chat output
-                //         });
-                //     }
 
-                //     $chatSend.click(function() {
-                //         sendMessage();
-                //     });
+    img.style.borderTopLeftRadius = "5%";
+      img.style.borderTopRightRadius = "5%";
+      img.src="data:image/jpeg;base64," + houseobj[x].img;
+      img.style.width= "300px";
+      img.style.height= "200px";
+      priceContainer.style.fontWeight= "bold";
+      priceContainer.style.paddingLeft= "10px";
+      descriptionContainer.style.paddingLeft="10px";
+      adContainer.style.margin="20px";
+      adContainer.style.marginBottom="70px";
+      adContainer.style.width="300px";
+      adContainer.style.height="315px";
+      adContainer.style.backgroundColor="white";
+      adContainer.style.border="1px solid lightgrey";
+      adContainer.style.borderRadius="5%";
+      adContainer.style.cursor="pointer";
+  });
+}
 
-                //     setInterval(function() {
-                //         retrieveMessages();
-                //     }, chatInterval);
-                // });
+render(houses);
+
+
+ 
+  
+  if(isLogedIn == 0)
+  {
+    var modallog = document.getElementById('myModallogin');
+    var btnlog = document.getElementById("login");
+    var spanlog = document.getElementsByClassName("closelogin")[0];
+    btnlog.onclick = function() {
+        modallog.style.display = "block";
+    }
+    spanlog.onclick = function() {
+        modallog.style.display = "none";
+    }
+    window.onclick = function(event) {
+        if (event.target == modallog) {
+            modallog.style.display = "none";
+        }
+      }
+  }
+
+
+
+  function accountDrop()
+  {
+    document.getElementById("myDropdown").classList.toggle("show");
+  }
+  window.onclick = function(e) {
+    if (!e.target.matches('.dropbtn')) {
+    var myDropdown = document.getElementById("myDropdown");
+      if (myDropdown.classList.contains('show')) {
+        myDropdown.classList.remove('show');
+      }
+    }
+  }
+  function logedInPrivelages(){
+document.getElementById("add-property").onclick = ()=>{
+ 
+if(isLogedIn == 1){
+  location.href = "../Components/SellPage.php";
+}
+else{
+  alert("Please Login firstly");
+}
+}}
+logedInPrivelages();
+
+
   </script>
   </html>
